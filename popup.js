@@ -1,16 +1,15 @@
 /**
- * MVL UI Feedback v2.0 — Popup Logic (Universal FE/QA)
- * - DEV Mode: DOM Telemetry & Screenshot to Cloudflare Remote MCP
- * - QA Mode: Plane Task Creation via PAT + Cloudflare R2 Media
- * - Full WAI-ARIA Accessibility (radiogroup, tabs, arrow navigation, focus visibility)
- * - P0 Security: Complete HTML entity escaping across all dynamic fields
+ * Popup Logic for MVL UI Feedback Extension (v1.1 Design System)
+ * - Switches between DEV Mode (MCP Queue) and QA Mode (Plane Task via PAT)
+ * - Auto-detects Project & Module from active tab URL (Production / Dev Online / Localhost)
+ * - Allows configuring & syncing Plane PAT (pre-filled with connected PAT)
+ * - Renders interactive Project Filter Chips & rich History Cards with R2 Crop Thumbnails
  */
 
 (function () {
   let config = Object.assign({}, window.MVL_DEFAULT_CONFIG || {});
   let activeTabUrl = "";
 
-  // DOM Elements
   const btnModeDev = document.getElementById("btn-mode-dev");
   const btnModeQa = document.getElementById("btn-mode-qa");
   const btnStartCrop = document.getElementById("btn-start-crop");
@@ -37,6 +36,16 @@
   const chkFloatingPill = document.getElementById("chk-floating-pill");
   const statusMsg = document.getElementById("status-msg");
 
+  function setStatus(text, isError = false) {
+    statusMsg.textContent = text;
+    statusMsg.style.color = isError ? "#e11d48" : "#059669";
+    if (text) {
+      setTimeout(() => {
+        if (statusMsg.textContent === text) statusMsg.textContent = "";
+      }, 3200);
+    }
+  }
+
   /**
    * P0 Security: Robust HTML entity sanitizer
    */
@@ -48,17 +57,6 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
-  }
-
-  function setStatus(text, isError = false) {
-    if (!statusMsg) return;
-    statusMsg.textContent = text;
-    statusMsg.style.color = isError ? "var(--accent-red)" : "var(--accent-qa)";
-    if (text) {
-      setTimeout(() => {
-        if (statusMsg.textContent === text) statusMsg.textContent = "";
-      }, 3500);
-    }
   }
 
   async function loadStoredConfig() {
@@ -94,33 +92,14 @@
 
   function renderModeButtons() {
     const isQa = (config.mode || "qa") === "qa";
-    if (btnModeDev) {
-      btnModeDev.className = `mode-card ${!isQa ? "active-dev" : ""}`;
-      btnModeDev.setAttribute("aria-checked", !isQa ? "true" : "false");
-      btnModeDev.tabIndex = !isQa ? 0 : -1;
-    }
-
-    if (btnModeQa) {
-      btnModeQa.className = `mode-card ${isQa ? "active-qa" : ""}`;
-      btnModeQa.setAttribute("aria-checked", isQa ? "true" : "false");
-      btnModeQa.tabIndex = isQa ? 0 : -1;
-    }
-
-    if (btnStartCrop) {
-      btnStartCrop.className = `btn-capture-primary ${isQa ? "qa" : ""}`;
-    }
+    btnModeDev.className = `role-pill ${!isQa ? "active" : ""}`;
+    btnModeQa.className = `role-pill ${isQa ? "active" : ""}`;
+    btnStartCrop.className = `btn-capture-primary ${isQa ? "qa" : ""}`;
     if (btnStartCropLabel) {
       btnStartCropLabel.textContent = isQa
-        ? "Chụp Ảnh Crop → Tạo Task Plane"
-        : "Chụp Ảnh Crop → Gửi Cho AI";
+        ? "Crop & Create Issue"
+        : "Crop & Send to MCP";
     }
-  }
-
-  function setMode(newMode) {
-    if (config.mode === newMode) return;
-    saveConfig({ mode: newMode });
-    renderModeButtons();
-    setStatus(`Đã chuyển sang ${newMode === "qa" ? "QA Mode (Plane)" : "DEV Mode (AI MCP)"}`);
   }
 
   function getEnabledProjects() {
@@ -131,323 +110,284 @@
     return list.length ? list : all;
   }
 
-  function detectEnvironmentAndProject() {
-    let env = "DEV-ONLINE";
-    let detectedProjCode = config.defaultProjectCode || "MVLCTV";
-    let detectedModId = "";
-
-    try {
-      const u = new URL(activeTabUrl);
-      const host = u.host.toLowerCase();
-      const path = u.pathname.toLowerCase();
-
-      if (host.includes("localhost") || host.includes("127.0.0.1")) {
-        env = "LOCAL";
-      } else if (
-        host.includes("erp.minhviet.vn") ||
-        host.includes("sales.minhviet.vn") ||
-        host.includes("mvl.vn")
-      ) {
-        env = "PROD";
-      } else {
-        env = "DEV-ONLINE";
-      }
-
-      const all = config.projects || [];
-      const match = all.find((p) => {
-        const dom = (p.domains || []).map((d) => d.toLowerCase());
-        const pre = (p.pathPrefixes || []).map((x) => x.toLowerCase());
-        const matchDom = dom.some((d) => host.includes(d));
-        const matchPath = pre.some((x) => path.startsWith(x));
-        return matchDom || matchPath;
-      });
-
-      if (match) {
-        detectedProjCode = match.identifier;
-        const mods = config.modulesByProject?.[match.id] || [];
-        const modMatch = mods.find((m) => {
-          const mKeys = (m.pathKeywords || []).map((k) => k.toLowerCase());
-          return mKeys.some((k) => path.includes(k));
-        });
-        if (modMatch) detectedModId = modMatch.id;
-      }
-    } catch {
-      // Fallback to default
-    }
-
-    return { env, detectedProjCode, detectedModId };
-  }
-
-  function renderEnvironmentBanner() {
-    const { env } = detectEnvironmentAndProject();
-    if (detectedEnvPill) {
-      detectedEnvPill.textContent = env;
-      detectedEnvPill.className = `env-tag ${env.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
-    }
-    if (detectedUrlText) {
-      detectedUrlText.textContent = activeTabUrl;
-      detectedUrlText.title = activeTabUrl;
-    }
-  }
-
-  function renderProjects() {
+  function renderProjectDropdowns(detected) {
     const enabledProjects = getEnabledProjects();
-    const { detectedProjCode, detectedModId } = detectEnvironmentAndProject();
+    const targetProjectId = detected?.projectId || config.defaultProjectId;
 
-    if (selectDefaultProject) {
-      selectDefaultProject.innerHTML = "";
-      enabledProjects.forEach((p) => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = `${p.name} (${p.identifier})`;
-        if (p.identifier === detectedProjCode) opt.selected = true;
-        selectDefaultProject.appendChild(opt);
-      });
-      renderModules(selectDefaultProject.value, detectedModId);
-    }
+    selectDefaultProject.innerHTML = enabledProjects
+      .map(
+        (p) =>
+          `<option value="${escapeHtml(p.id)}" data-code="${escapeHtml(p.identifier)}" ${
+            p.id === targetProjectId ? "selected" : ""
+          }>[${escapeHtml(p.identifier)}] ${escapeHtml(p.name)}</option>`
+      )
+      .join("");
 
-    renderProjectChecklist();
+    renderModuleDropdown(targetProjectId, detected?.moduleId || config.defaultModuleId);
   }
 
-  function renderModules(projectId, preselectedId = "") {
-    if (!selectDefaultModule) return;
-    selectDefaultModule.innerHTML = "";
-    const emptyOpt = document.createElement("option");
-    emptyOpt.value = "";
-    emptyOpt.textContent = "— Không chọn phân hệ / Mặc định —";
-    selectDefaultModule.appendChild(emptyOpt);
-
-    const mods = config.modulesByProject?.[projectId] || [];
-    mods.forEach((m) => {
-      const opt = document.createElement("option");
-      opt.value = m.id;
-      opt.textContent = m.name;
-      if (m.id === preselectedId) opt.selected = true;
-      selectDefaultModule.appendChild(opt);
-    });
+  function renderModuleDropdown(projectId, selectedModuleId) {
+    const mods = (config.modulesByProject && config.modulesByProject[projectId]) || [];
+    selectDefaultModule.innerHTML =
+      `<option value="">-- Không gắn Module --</option>` +
+      mods
+        .map(
+          (m) =>
+            `<option value="${escapeHtml(m.id)}" data-name="${escapeHtml(m.name)}" ${
+              m.id === selectedModuleId ? "selected" : ""
+            }>${escapeHtml(m.name)}</option>`
+        )
+        .join("");
   }
 
   function renderProjectChecklist() {
-    if (!projectChecklist) return;
     const all = config.projects || window.MVL_DEFAULT_CONFIG.projects || [];
-    const enabled = config.enabledProjectCodes || [];
-    projectChecklist.innerHTML = "";
+    const enabled = new Set(config.enabledProjectCodes || []);
+    projectChecklist.innerHTML = all
+      .map((p) => {
+        const isChecked = enabled.has(p.identifier);
+        return `
+          <label class="project-check-item ${isChecked ? "checked" : ""}" title="${escapeHtml(p.name)}">
+            <div class="project-code-label">
+              <strong>${escapeHtml(p.identifier)}</strong>
+              <span class="project-code-sub">${escapeHtml(p.name)}</span>
+            </div>
+            <input type="checkbox" value="${escapeHtml(p.identifier)}" ${isChecked ? "checked" : ""} />
+          </label>
+        `;
+      })
+      .join("");
 
-    all.forEach((p) => {
-      const isChecked = !enabled.length || enabled.includes(p.identifier);
-      const chip = document.createElement("label");
-      chip.className = "project-chip";
-
-      const chk = document.createElement("input");
-      chk.type = "checkbox";
-      chk.checked = isChecked;
+    projectChecklist.querySelectorAll("input[type='checkbox']").forEach((chk) => {
       chk.addEventListener("change", () => {
-        const currentEnabled = (config.enabledProjectCodes && config.enabledProjectCodes.slice()) ||
-          all.map((x) => x.identifier);
-        let next;
-        if (chk.checked) {
-          next = Array.from(new Set([...currentEnabled, p.identifier]));
-        } else {
-          next = currentEnabled.filter((code) => code !== p.identifier);
-        }
-        saveConfig({ enabledProjectCodes: next });
-        renderProjects();
+        const label = chk.closest(".project-check-item");
+        if (label) label.classList.toggle("checked", chk.checked);
+        const checkedCodes = Array.from(
+          projectChecklist.querySelectorAll("input[type='checkbox']:checked")
+        ).map((el) => el.value);
+        saveConfig({ enabledProjectCodes: checkedCodes });
+        const detected = window.detectMvlContextFromUrl(activeTabUrl, config);
+        renderProjectDropdowns(detected);
+        setStatus("Đã lưu bộ lọc Project");
       });
-
-      const nameSpan = document.createElement("span");
-      nameSpan.textContent = p.name;
-
-      const codeSpan = document.createElement("span");
-      codeSpan.className = "project-chip-code";
-      codeSpan.textContent = p.identifier;
-
-      chip.appendChild(chk);
-      chip.appendChild(nameSpan);
-      chip.appendChild(codeSpan);
-      projectChecklist.appendChild(chip);
     });
   }
 
-  function renderAccountBanner() {
-    const user = config.planeUser || window.MVL_DEFAULT_CONFIG.planeUser || {};
-    const name = user.display_name || user.first_name || "Pham Hung";
-    const email = user.email || "hung.phamduc@glinteco.com";
+  function renderAccountAndPat() {
+    inputPlanePat.value = config.planePat || "DEFAULT_CONNECTED_ACCOUNT";
+    inputPlaneHost.value = config.planeHostUrl || "https://pm.glinteco.com";
+    inputPlaneWorkspace.value = config.planeWorkspaceSlug || "glinteco";
+    inputMcpUrl.value =
+      config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp";
+    chkFloatingPill.checked = config.showFloatingButton !== false;
 
-    if (accountNameText) accountNameText.textContent = name;
-    if (accountEmailText) accountEmailText.textContent = `${email} · PAT mặc định`;
+    const u = config.planeUser || {};
+    const fullName = u.first_name || u.display_name || "Pham Hung";
+    accountNameText.textContent = `${fullName} (${u.display_name || "hung.phamduc"})`;
+    accountEmailText.textContent = `${
+      u.email || "hung.phamduc@glinteco.com"
+    } • PAT đã gắn sẵn`;
     if (accountAvatarInitials) {
-      accountAvatarInitials.textContent = name
-        .split(" ")
-        .map((p) => p[0])
-        .slice(0, 2)
+      const initials = fullName
+        .split(/\s+/)
+        .map((w) => w[0])
         .join("")
+        .slice(0, 2)
         .toUpperCase();
-    }
-    if (inputPlanePat) inputPlanePat.value = config.planePat || "";
-    if (inputPlaneHost) inputPlaneHost.value = config.planeHostUrl || "https://pm.glinteco.com";
-    if (inputPlaneWorkspace) inputPlaneWorkspace.value = config.planeWorkspaceSlug || "glinteco";
-    if (inputMcpUrl) {
-      inputMcpUrl.value =
-        config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp";
-    }
-    if (chkFloatingPill) {
-      chkFloatingPill.checked = config.showFloatingButton !== false;
+      accountAvatarInitials.textContent = initials || "PH";
     }
   }
 
   function renderAll() {
     renderModeButtons();
-    renderEnvironmentBanner();
-    renderProjects();
-    renderAccountBanner();
+    const detected = window.detectMvlContextFromUrl(activeTabUrl, config);
+    detectedEnvPill.textContent = detected.env;
+    detectedEnvPill.className = `env-pill ${detected.env}`;
+    detectedUrlText.textContent = activeTabUrl;
+
+    renderProjectDropdowns(detected);
+    renderProjectChecklist();
+    renderAccountAndPat();
   }
 
-  // Segmented Mode Navigation with Arrow Keys
-  if (btnModeDev && btnModeQa) {
-    btnModeDev.addEventListener("click", () => setMode("dev"));
-    btnModeQa.addEventListener("click", () => setMode("qa"));
+  // Event Listeners
+  btnModeDev.addEventListener("click", () => {
+    saveConfig({ mode: "dev" });
+    renderModeButtons();
+    setStatus("DEV Mode → Đẩy thẳng vào MCP");
+  });
 
-    [btnModeDev, btnModeQa].forEach((btn) => {
-      btn.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-          e.preventDefault();
-          setMode("qa");
-          btnModeQa.focus();
-        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-          e.preventDefault();
-          setMode("dev");
-          btnModeDev.focus();
-        }
-      });
+  btnModeQa.addEventListener("click", () => {
+    saveConfig({ mode: "qa" });
+    renderModeButtons();
+    setStatus("QA Mode → Tạo Task lên Plane");
+  });
+
+  selectDefaultProject.addEventListener("change", (e) => {
+    const pid = e.target.value;
+    const code = e.target.selectedOptions[0]?.getAttribute("data-code") || "MVLCTV";
+    const mods = (config.modulesByProject && config.modulesByProject[pid]) || [];
+    const firstMod = mods[0] || null;
+    saveConfig({
+      defaultProjectId: pid,
+      defaultProjectCode: code,
+      defaultModuleId: firstMod ? firstMod.id : "",
+      defaultModuleName: firstMod ? firstMod.name : "",
+    });
+    renderModuleDropdown(pid, firstMod ? firstMod.id : "");
+    setStatus(`Đã chọn [${code}]`);
+  });
+
+  selectDefaultModule.addEventListener("change", (e) => {
+    const mid = e.target.value;
+    const mname = e.target.selectedOptions[0]?.getAttribute("data-name") || "";
+    saveConfig({ defaultModuleId: mid, defaultModuleName: mname });
+    setStatus(`Module: ${mname || "Không gắn"}`);
+  });
+
+  btnSelectAllProjects.addEventListener("click", () => {
+    const allCodes = (config.projects || []).map((p) => p.identifier);
+    saveConfig({ enabledProjectCodes: allCodes });
+    renderProjectChecklist();
+    const detected = window.detectMvlContextFromUrl(activeTabUrl, config);
+    renderProjectDropdowns(detected);
+    setStatus("Đã bật tất cả Project");
+  });
+
+  const btnToggleAddProject = document.getElementById("btn-toggle-add-project");
+  const addProjectDrawer = document.getElementById("add-project-drawer");
+  const btnSaveNewProject = document.getElementById("btn-save-new-project");
+  if (btnToggleAddProject && addProjectDrawer) {
+    btnToggleAddProject.addEventListener("click", () => {
+      const isHidden = addProjectDrawer.style.display === "none";
+      addProjectDrawer.style.display = isHidden ? "flex" : "none";
+    });
+  }
+  if (btnSaveNewProject) {
+    btnSaveNewProject.addEventListener("click", () => {
+      const codeEl = document.getElementById("input-new-proj-code");
+      const nameEl = document.getElementById("input-new-proj-name");
+      const idEl = document.getElementById("input-new-proj-id");
+      const code = (codeEl?.value || "").trim().toUpperCase();
+      const name = (nameEl?.value || "").trim();
+      const id = (idEl?.value || "").trim() || `custom-${code.toLowerCase()}-${Date.now()}`;
+      if (!code || !name) {
+        setStatus("Nhập Mã & Tên Project", true);
+        return;
+      }
+      const existing = config.projects || [];
+      const updatedProjects = [{ id, identifier: code, name }, ...existing.filter((p) => p.identifier !== code)];
+      const updatedEnabled = Array.from(new Set([code, ...(config.enabledProjectCodes || [])]));
+      saveConfig({ projects: updatedProjects, enabledProjectCodes: updatedEnabled, defaultProjectId: id, defaultProjectCode: code });
+      renderAll();
+      if (addProjectDrawer) addProjectDrawer.style.display = "none";
+      if (codeEl) codeEl.value = "";
+      if (nameEl) nameEl.value = "";
+      if (idEl) idEl.value = "";
+      setStatus(`Đã thêm [${code}]`);
     });
   }
 
-  // Trigger Capture
-  function triggerCapture(captureType = "crop") {
+  btnStartCrop.addEventListener("click", async () => {
     if (typeof chrome !== "undefined" && chrome.tabs && chrome.tabs.query) {
-      chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-        if (tab?.id) {
-          chrome.tabs.sendMessage(
-            tab.id,
-            { type: "MVL_START_CAPTURE", captureType, mode: config.mode || "qa" },
-            () => {
-              void chrome.runtime.lastError;
-              window.close();
-            }
-          );
-        }
-      });
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) {
+        chrome.tabs.sendMessage(
+          tab.id,
+          { type: "MVL_START_CAPTURE", captureType: "crop", mode: config.mode },
+          () => {
+            window.close();
+          }
+        );
+      }
     }
-  }
+  });
 
-  if (btnStartCrop) {
-    btnStartCrop.addEventListener("click", () => triggerCapture("crop"));
-  }
-  if (btnStartVideo) {
-    btnStartVideo.addEventListener("click", () => triggerCapture("video"));
-  }
-
-  if (selectDefaultProject) {
-    selectDefaultProject.addEventListener("change", (e) => {
-      renderModules(e.target.value);
-    });
-  }
-
-  if (btnSelectAllProjects) {
-    btnSelectAllProjects.addEventListener("click", () => {
-      const all = config.projects || window.MVL_DEFAULT_CONFIG.projects || [];
-      saveConfig({ enabledProjectCodes: all.map((p) => p.identifier) });
-      renderProjects();
-      setStatus("Đã chọn tất cả dự án!");
-    });
-  }
-
-  if (btnSyncPlane) {
-    btnSyncPlane.addEventListener("click", async () => {
-      const pat = (inputPlanePat ? inputPlanePat.value.trim() : "");
-      const hostUrl = (inputPlaneHost ? inputPlaneHost.value.trim() : "") || "https://pm.glinteco.com";
-      const workspaceSlug = (inputPlaneWorkspace ? inputPlaneWorkspace.value.trim() : "") || "glinteco";
-
-      btnSyncPlane.disabled = true;
-      if (btnSyncPlaneLabel) btnSyncPlaneLabel.textContent = "Đang đồng bộ từ Plane...";
-
-      const workerBase = (
-        config.workerBaseUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev"
-      ).replace(/\/+$/, "");
-
-      try {
-        const res = await fetch(`${workerBase}/api/plane/sync`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pat, hostUrl, workspaceSlug }),
-        });
-        const data = await res.json();
-        if (data?.ok) {
-          await saveConfig({
-            planePat: pat,
-            planeHostUrl: hostUrl,
-            planeWorkspaceSlug: workspaceSlug,
-            planeUser: data.user || config.planeUser,
-            projects: data.projects || config.projects,
-            modulesByProject: Object.assign(
-              {},
-              config.modulesByProject,
-              data.modulesByProject || {}
-            ),
-          });
-          renderAll();
-          setStatus(`Đã đồng bộ ${(data.projects || []).length} Projects!`);
-        } else {
-          setStatus("Lỗi đồng bộ Plane PAT", true);
-        }
-      } catch (err) {
-        setStatus(`Lỗi: ${err.message}`, true);
-      } finally {
-        btnSyncPlane.disabled = false;
-        if (btnSyncPlaneLabel) {
-          btnSyncPlaneLabel.textContent = "Lưu PAT & Đồng bộ Projects / Modules";
-        }
+  btnStartVideo.addEventListener("click", async () => {
+    if (typeof chrome !== "undefined" && chrome.tabs && chrome.tabs.query) {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) {
+        chrome.tabs.sendMessage(
+          tab.id,
+          { type: "MVL_START_CAPTURE", captureType: "video", mode: config.mode },
+          () => {
+            window.close();
+          }
+        );
       }
-    });
-  }
+    }
+  });
 
-  if (btnCopyMcp) {
-    btnCopyMcp.addEventListener("click", async () => {
-      const mcpJson = JSON.stringify(
-        {
-          "mvl-ui-feedback-mcp": {
-            serverUrl:
-              config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp",
-          },
-        },
-        null,
-        2
-      );
-      try {
-        await navigator.clipboard.writeText(mcpJson);
-        setStatus("Đã copy cấu hình MCP!");
-      } catch {
-        setStatus("Không thể copy vào clipboard", true);
-      }
-    });
-  }
+  btnSyncPlane.addEventListener("click", async () => {
+    const pat = inputPlanePat.value.trim();
+    const hostUrl = inputPlaneHost.value.trim() || "https://pm.glinteco.com";
+    const workspaceSlug = inputPlaneWorkspace.value.trim() || "glinteco";
+    btnSyncPlane.disabled = true;
+    if (btnSyncPlaneLabel) btnSyncPlaneLabel.textContent = "Đang đồng bộ từ Plane...";
 
-  if (chkFloatingPill) {
-    chkFloatingPill.addEventListener("change", (e) => {
-      saveConfig({ showFloatingButton: e.target.checked });
-    });
-  }
-
-  /**
-   * Load history from Cloudflare D1 with safe HTML rendering
-   */
-  async function loadHistory() {
-    if (!historyList) return;
-    historyList.innerHTML = `<div class="empty-state">Đang tải từ Cloudflare D1...</div>`;
     const workerBase = (
       config.workerBaseUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev"
     ).replace(/\/+$/, "");
 
+    try {
+      const res = await fetch(`${workerBase}/api/plane/sync`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pat, hostUrl, workspaceSlug }),
+      });
+      const data = await res.json();
+      if (data?.ok) {
+        await saveConfig({
+          planePat: pat,
+          planeHostUrl: hostUrl,
+          planeWorkspaceSlug: workspaceSlug,
+          planeUser: data.user || config.planeUser,
+          projects: data.projects || config.projects,
+          modulesByProject: Object.assign(
+            {},
+            config.modulesByProject,
+            data.modulesByProject || {}
+          ),
+        });
+        renderAll();
+        setStatus(`Đã đồng bộ ${(data.projects || []).length} Projects!`);
+      } else {
+        setStatus("Lỗi đồng bộ Plane PAT", true);
+      }
+    } catch (err) {
+      setStatus(`Lỗi: ${err.message}`, true);
+    } finally {
+      btnSyncPlane.disabled = false;
+      if (btnSyncPlaneLabel) {
+        btnSyncPlaneLabel.textContent = "Lưu PAT & Đồng bộ Projects / Modules";
+      }
+    }
+  });
+
+  btnCopyMcp.addEventListener("click", async () => {
+    const mcpJson = JSON.stringify(
+      {
+        "mvl-ui-feedback-mcp": {
+          serverUrl:
+            config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp",
+        },
+      },
+      null,
+      2
+    );
+    await navigator.clipboard.writeText(mcpJson);
+    setStatus("Đã copy cấu hình MCP!");
+  });
+
+  chkFloatingPill.addEventListener("change", (e) => {
+    saveConfig({ showFloatingButton: e.target.checked });
+  });
+
+  async function loadHistory() {
+    historyList.innerHTML = `<div class="empty-state">Đang tải từ Cloudflare D1...</div>`;
+    const workerBase = (
+      config.workerBaseUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev"
+    ).replace(/\/+$/, "");
     try {
       const res = await fetch(`${workerBase}/api/feedbacks?limit=10`);
       const data = await res.json();
@@ -456,41 +396,31 @@
         historyList.innerHTML = `<div class="empty-state">Chưa có feedback nào. Hãy bấm Chụp Ảnh Crop!</div>`;
         return;
       }
-
       historyList.innerHTML = items
         .map((it) => {
           const isQa = it.mode === "qa" && it.plane_task;
-          const safeIdentifier = escapeHtml(it.plane_task?.identifier || "");
-          const safeTaskUrl = escapeHtml(it.plane_task?.url || "#");
-          const safeModuleName = escapeHtml(it.plane_task?.module_name || it.plane_task?.project_code || "");
-          const safeId = escapeHtml(it.id || "");
-          const safeEnv = escapeHtml(it.env || "");
-          const safeComment = escapeHtml(it.comment || "");
-          const safePath = escapeHtml(it.pathname || it.page_url || "");
-          const safeMediaUrl = escapeHtml(it.media_url || "");
-
           const badge = isQa
-            ? `<a href="${safeTaskUrl}" target="_blank" rel="noopener noreferrer">${safeIdentifier} · ${safeModuleName}</a>`
-            : `MCP · ${safeId}`;
-
-          const thumbHtml = safeMediaUrl
-            ? `<img class="history-thumb" src="${safeMediaUrl}" alt="Crop Preview" loading="lazy" />`
+            ? `<a href="${escapeHtml(it.plane_task.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.plane_task.identifier)} · ${escapeHtml(
+                it.plane_task.module_name || it.plane_task.project_code || ""
+              )}</a>`
+            : `MCP · ${escapeHtml(it.id)}`;
+          const thumbHtml = it.media_url
+            ? `<img class="history-thumb" src="${escapeHtml(it.media_url)}" alt="Crop" loading="lazy" />`
             : "";
-
           return `
             <div class="history-item">
               ${thumbHtml}
               <div class="history-body">
                 <div class="history-top">
                   <span class="history-id">${badge}</span>
-                  <span class="env-tag ${safeEnv.toLowerCase().replace(/[^a-z0-9]/g, "-")}">${safeEnv}</span>
+                  <span class="env-pill ${escapeHtml(it.env)}">${escapeHtml(it.env)}</span>
                 </div>
-                <div class="history-comment">${safeComment}</div>
+                <div class="history-comment">${escapeHtml(it.comment)}</div>
                 <div class="history-meta">
-                  <span>${safePath}</span>
+                  <span>${escapeHtml(it.pathname || it.page_url || "")}</span>
                   ${
-                    safeMediaUrl
-                      ? `<a href="${safeMediaUrl}" target="_blank" rel="noopener noreferrer">Ảnh R2 ↗</a>`
+                    it.media_url
+                      ? `<a href="${escapeHtml(it.media_url)}" target="_blank" rel="noopener noreferrer">Ảnh R2 ↗</a>`
                       : ""
                   }
                 </div>
@@ -500,60 +430,25 @@
         })
         .join("");
     } catch (err) {
-      historyList.innerHTML = `<div class="empty-state">Không tải được lịch sử: ${escapeHtml(err.message)}</div>`;
+      historyList.innerHTML = `<div class="empty-state">Không tải được lịch sử: ${err.message}</div>`;
     }
   }
 
-  if (btnRefreshHistory) {
-    btnRefreshHistory.addEventListener("click", loadHistory);
-  }
+  btnRefreshHistory.addEventListener("click", loadHistory);
 
-  // WAI-ARIA Tab Switching & Arrow Key Navigation
-  const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
-  tabButtons.forEach((btn, index) => {
+  // Tab switching
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      activateTab(btn);
-    });
-
-    btn.addEventListener("keydown", (e) => {
-      let nextIndex = null;
-      if (e.key === "ArrowRight") {
-        nextIndex = (index + 1) % tabButtons.length;
-      } else if (e.key === "ArrowLeft") {
-        nextIndex = (index - 1 + tabButtons.length) % tabButtons.length;
-      }
-      if (nextIndex !== null) {
-        e.preventDefault();
-        const nextBtn = tabButtons[nextIndex];
-        activateTab(nextBtn);
-        nextBtn.focus();
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+      const target = document.getElementById(btn.getAttribute("data-tab"));
+      if (target) target.classList.add("active");
+      if (btn.getAttribute("data-tab") === "tab-history") {
+        loadHistory();
       }
     });
   });
-
-  function activateTab(btn) {
-    const tabId = btn.getAttribute("data-tab");
-    tabButtons.forEach((b) => {
-      const active = b === btn;
-      b.classList.toggle("active", active);
-      b.setAttribute("aria-selected", active ? "true" : "false");
-      b.tabIndex = active ? 0 : -1;
-    });
-
-    document.querySelectorAll(".tab-panel").forEach((panel) => {
-      const match = panel.id === tabId;
-      panel.classList.toggle("active", match);
-      if (match) {
-        panel.removeAttribute("hidden");
-      } else {
-        panel.setAttribute("hidden", "true");
-      }
-    });
-
-    if (tabId === "tab-history") {
-      loadHistory();
-    }
-  }
 
   loadStoredConfig();
 })();
