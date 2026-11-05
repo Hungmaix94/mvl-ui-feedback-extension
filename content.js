@@ -15,6 +15,7 @@
     plus: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
     send: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,
     close: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+    check: `<svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
   };
 
   let currentConfig = Object.assign({}, window.MVL_DEFAULT_CONFIG || {});
@@ -27,6 +28,7 @@
   let recordedChunks = [];
 
   // Multi-Crop / Multi-Comment Batch State
+  const MAX_SHOTS = 8;
   let batchItems = [];
   let activeItemIndex = 0;
 
@@ -581,19 +583,23 @@
       const modules = getModulesForProject(selectedProjectId);
       const currentItem = batchItems[activeItemIndex] || batchItems[0];
       const fp = currentItem.fingerprint || {};
-      const compLabel = fp.reactComponent || fp.domSelector || "Element";
+      const rawComp = fp.reactComponent || "";
+      const isMinifiedComp = rawComp && (/^[a-zA-Z0-9_$]{1,2}(\s*<\s*[a-zA-Z0-9_$]{1,2})*$/.test(rawComp) || rawComp.includes(" < "));
+      const compLabel = (!isMinifiedComp && rawComp) || fp.domSelector || "UI Region";
 
       const filmstripHtml = batchItems
         .map((it, idx) => {
           const isActive = idx === activeItemIndex;
+          const hasNote = Boolean((it.comment || "").trim());
           const delBtn =
             batchItems.length > 1
-              ? `<button type="button" class="mvl-fb-film-del" data-del-idx="${idx}" title="Remove">×</button>`
+              ? `<button type="button" class="mvl-fb-film-del" data-del-idx="${idx}" title="Remove crop #${idx + 1}" aria-label="Remove crop ${idx + 1}">×</button>`
               : "";
           return `
-            <div class="mvl-fb-film-item ${isActive ? "active" : ""} ${isQa ? "qa" : ""}" data-idx="${idx}" title="Item #${idx + 1}${it.comment ? ": " + it.comment : ""}">
+            <div class="mvl-fb-film-item ${isActive ? "active" : ""} ${isQa ? "qa" : ""} ${hasNote ? "has-note" : ""}" data-idx="${idx}" role="tab" aria-selected="${isActive}" title="Crop #${idx + 1}${it.comment ? ": " + it.comment : ""}">
               <img src="${it.mediaDataUrl}" alt="Crop ${idx + 1}" />
               <span class="mvl-fb-film-idx">${idx + 1}</span>
+              ${hasNote ? `<span class="mvl-fb-film-check" title="Comment added">${ICONS.check}</span>` : ""}
               ${delBtn}
             </div>
           `;
@@ -622,12 +628,16 @@
 
       activePopover.innerHTML = `
         <div class="mvl-fb-compact-head">
-          <div class="mvl-fb-filmstrip">
+          <div class="mvl-fb-filmstrip" role="tablist" aria-label="Captured crops">
             ${filmstripHtml}
-            <button type="button" class="mvl-fb-film-add" id="mvl-pop-add-crop" title="Crop another area and group into this issue">
-              ${ICONS.plus}
-              <span>Crop</span>
-            </button>
+            ${
+              batchItems.length < MAX_SHOTS
+                ? `<button type="button" class="mvl-fb-film-add" id="mvl-pop-add-crop" title="Crop another area (max ${MAX_SHOTS})">
+                    ${ICONS.plus}
+                    <span>Crop</span>
+                  </button>`
+                : ""
+            }
           </div>
           <div class="mvl-fb-head-right">
             <span class="mvl-fb-env-badge ${escapeHtml(selectedEnv)}" id="mvl-pop-env-badge" title="Switch environment">${escapeHtml(selectedEnv)}</span>
@@ -831,6 +841,14 @@
       commentInput.addEventListener("input", () => {
         if (batchItems[activeItemIndex]) {
           batchItems[activeItemIndex].comment = commentInput.value;
+          const activeChipText = activePopover.querySelector(
+            `.mvl-fb-note-chip[data-chip-idx="${activeItemIndex}"] .mvl-fb-note-chip-text`
+          );
+          if (activeChipText) {
+            activeChipText.innerHTML = `<strong>#${activeItemIndex + 1}</strong> ${
+              commentInput.value ? commentInput.value : "<em>Add note...</em>"
+            }`;
+          }
         }
       });
 
@@ -845,19 +863,24 @@
 
       submitBtn.addEventListener("click", async () => {
         syncCurrentCommentFromDom();
-        const nonEmptyComments = batchItems
-          .map((it, idx) => {
-            const c = (it.comment || "").trim();
-            return c ? (batchItems.length > 1 ? `[#${idx + 1}] ${c}` : c) : "";
-          })
-          .filter(Boolean);
-
-        const combinedComment = nonEmptyComments.join(" | ");
-        if (!combinedComment) {
-          commentInput.style.borderColor = "#ef4444";
-          commentInput.focus();
+        // Validation: Ensure every crop item has a comment
+        const missingIndex = batchItems.findIndex((it) => !(it.comment || "").trim());
+        if (missingIndex !== -1) {
+          activeItemIndex = missingIndex;
+          renderPopoverContent();
+          const commentEl = activePopover.querySelector("#mvl-pop-comment");
+          if (commentEl) {
+            commentEl.style.borderColor = "#ef4444";
+            commentEl.focus();
+          }
+          showToast(`Please add a comment for crop #${missingIndex + 1}`, true);
           return;
         }
+
+        const combinedComment = batchItems.length > 1
+          ? batchItems.map((it, idx) => `#${idx + 1}: ${(it.comment || "").trim()}`).join("\n\n")
+          : (batchItems[0]?.comment || "").trim();
+
         submitBtn.disabled = true;
         submitBtn.innerHTML = `<span>Sending...</span>`;
 
@@ -876,9 +899,10 @@
           mediaDataUrl: primaryItem.mediaDataUrl,
           cropRect: primaryItem.cropRect,
           fingerprint: primaryItem.fingerprint,
+          batch: batchItems.length,
           items: batchItems.map((it, idx) => ({
             index: idx + 1,
-            comment: (it.comment || "").trim() || `Item #${idx + 1}`,
+            comment: (it.comment || "").trim(),
             mediaType: it.mediaType,
             mediaDataUrl: it.mediaDataUrl,
             cropRect: it.cropRect,
