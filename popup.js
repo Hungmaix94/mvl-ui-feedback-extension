@@ -1,9 +1,9 @@
 /**
- * Popup Logic for MVL UI Feedback Extension
+ * Popup Logic for MVL UI Feedback Extension (v1.1 Design System)
  * - Switches between DEV Mode (MCP Queue) and QA Mode (Plane Task via PAT)
  * - Auto-detects Project & Module from active tab URL (Production / Dev Online / Localhost)
- * - Allows configuring & syncing Plane PAT (pre-filled with Pham Hung's connected PAT)
- * - Allows toggling enabled Projects in the Project List
+ * - Allows configuring & syncing Plane PAT (pre-filled with connected PAT)
+ * - Renders interactive Project Filter Chips & rich History Cards with R2 Crop Thumbnails
  */
 
 (function () {
@@ -13,6 +13,7 @@
   const btnModeDev = document.getElementById("btn-mode-dev");
   const btnModeQa = document.getElementById("btn-mode-qa");
   const btnStartCrop = document.getElementById("btn-start-crop");
+  const btnStartCropLabel = document.getElementById("btn-start-crop-label");
   const btnStartVideo = document.getElementById("btn-start-video");
   const selectDefaultProject = document.getElementById("select-default-project");
   const selectDefaultModule = document.getElementById("select-default-module");
@@ -24,8 +25,10 @@
   const inputPlaneHost = document.getElementById("input-plane-host");
   const inputPlaneWorkspace = document.getElementById("input-plane-workspace");
   const btnSyncPlane = document.getElementById("btn-sync-plane");
+  const btnSyncPlaneLabel = document.getElementById("btn-sync-plane-label");
   const accountNameText = document.getElementById("account-name-text");
   const accountEmailText = document.getElementById("account-email-text");
+  const accountAvatarInitials = document.getElementById("account-avatar-initials");
   const inputMcpUrl = document.getElementById("input-mcp-url");
   const btnCopyMcp = document.getElementById("btn-copy-mcp");
   const historyList = document.getElementById("history-list");
@@ -35,11 +38,11 @@
 
   function setStatus(text, isError = false) {
     statusMsg.textContent = text;
-    statusMsg.style.color = isError ? "#f87171" : "#34d399";
+    statusMsg.style.color = isError ? "#fb7185" : "#34d399";
     if (text) {
       setTimeout(() => {
         if (statusMsg.textContent === text) statusMsg.textContent = "";
-      }, 3500);
+      }, 3200);
     }
   }
 
@@ -78,10 +81,12 @@
     const isQa = (config.mode || "qa") === "qa";
     btnModeDev.className = `mode-card ${!isQa ? "active-dev" : ""}`;
     btnModeQa.className = `mode-card ${isQa ? "active-qa" : ""}`;
-    btnStartCrop.className = `btn-primary ${isQa ? "qa" : ""}`;
-    btnStartCrop.textContent = isQa
-      ? "✂️ Chụp Ảnh Crop → Tạo Task Plane"
-      : "✂️ Chụp Ảnh Crop → Bắn vào MCP";
+    btnStartCrop.className = `btn-capture-primary ${isQa ? "qa" : ""}`;
+    if (btnStartCropLabel) {
+      btnStartCropLabel.textContent = isQa
+        ? "Chụp Ảnh Crop → Tạo Task Plane"
+        : "Chụp Ảnh Crop → Đẩy vào MCP";
+    }
   }
 
   function getEnabledProjects() {
@@ -126,25 +131,31 @@
     const all = config.projects || window.MVL_DEFAULT_CONFIG.projects || [];
     const enabled = new Set(config.enabledProjectCodes || []);
     projectChecklist.innerHTML = all
-      .map(
-        (p) => `
-        <label class="project-check-item" title="${p.name}">
-          <input type="checkbox" value="${p.identifier}" ${enabled.has(p.identifier) ? "checked" : ""} />
-          <span><strong>${p.identifier}</strong></span>
-        </label>
-      `
-      )
+      .map((p) => {
+        const isChecked = enabled.has(p.identifier);
+        return `
+          <label class="project-check-item ${isChecked ? "checked" : ""}" title="${p.name}">
+            <div class="project-code-label">
+              <strong>${p.identifier}</strong>
+              <span class="project-code-sub">${p.name}</span>
+            </div>
+            <input type="checkbox" value="${p.identifier}" ${isChecked ? "checked" : ""} />
+          </label>
+        `;
+      })
       .join("");
 
     projectChecklist.querySelectorAll("input[type='checkbox']").forEach((chk) => {
       chk.addEventListener("change", () => {
+        const label = chk.closest(".project-check-item");
+        if (label) label.classList.toggle("checked", chk.checked);
         const checkedCodes = Array.from(
           projectChecklist.querySelectorAll("input[type='checkbox']:checked")
         ).map((el) => el.value);
         saveConfig({ enabledProjectCodes: checkedCodes });
         const detected = window.detectMvlContextFromUrl(activeTabUrl, config);
         renderProjectDropdowns(detected);
-        setStatus("Đã lưu danh sách Project");
+        setStatus("Đã lưu bộ lọc Project");
       });
     });
   }
@@ -158,12 +169,20 @@
     chkFloatingPill.checked = config.showFloatingButton !== false;
 
     const u = config.planeUser || {};
-    accountNameText.textContent = `${u.first_name || u.display_name || "Pham Hung"} (${
-      u.display_name || "hung.phamduc"
-    })`;
+    const fullName = u.first_name || u.display_name || "Pham Hung";
+    accountNameText.textContent = `${fullName} (${u.display_name || "hung.phamduc"})`;
     accountEmailText.textContent = `${
       u.email || "hung.phamduc@glinteco.com"
     } • PAT đã gắn sẵn`;
+    if (accountAvatarInitials) {
+      const initials = fullName
+        .split(/\s+/)
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+      accountAvatarInitials.textContent = initials || "PH";
+    }
   }
 
   function renderAll() {
@@ -171,7 +190,7 @@
     const detected = window.detectMvlContextFromUrl(activeTabUrl, config);
     detectedEnvPill.textContent = detected.env;
     detectedEnvPill.className = `env-pill ${detected.env}`;
-    detectedUrlText.textContent = `🔗 ${activeTabUrl}`;
+    detectedUrlText.textContent = activeTabUrl;
 
     renderProjectDropdowns(detected);
     renderProjectChecklist();
@@ -182,13 +201,13 @@
   btnModeDev.addEventListener("click", () => {
     saveConfig({ mode: "dev" });
     renderModeButtons();
-    setStatus("Chế độ DEV → Bắn thẳng vào MCP");
+    setStatus("DEV Mode → Đẩy thẳng vào MCP");
   });
 
   btnModeQa.addEventListener("click", () => {
     saveConfig({ mode: "qa" });
     renderModeButtons();
-    setStatus("Chế độ QA → Tạo Task lên Plane");
+    setStatus("QA Mode → Tạo Task lên Plane");
   });
 
   selectDefaultProject.addEventListener("change", (e) => {
@@ -203,14 +222,14 @@
       defaultModuleName: firstMod ? firstMod.name : "",
     });
     renderModuleDropdown(pid, firstMod ? firstMod.id : "");
-    setStatus(`Đã chọn Project [${code}]`);
+    setStatus(`Đã chọn [${code}]`);
   });
 
   selectDefaultModule.addEventListener("change", (e) => {
     const mid = e.target.value;
     const mname = e.target.selectedOptions[0]?.getAttribute("data-name") || "";
     saveConfig({ defaultModuleId: mid, defaultModuleName: mname });
-    setStatus(`Đã chọn Module: ${mname || "Không gắn"}`);
+    setStatus(`Module: ${mname || "Không gắn"}`);
   });
 
   btnSelectAllProjects.addEventListener("click", () => {
@@ -257,7 +276,7 @@
     const hostUrl = inputPlaneHost.value.trim() || "https://pm.glinteco.com";
     const workspaceSlug = inputPlaneWorkspace.value.trim() || "glinteco";
     btnSyncPlane.disabled = true;
-    btnSyncPlane.textContent = "⏳ Đang đồng bộ từ Plane...";
+    if (btnSyncPlaneLabel) btnSyncPlaneLabel.textContent = "Đang đồng bộ từ Plane...";
 
     const workerBase = (
       config.workerBaseUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev"
@@ -292,7 +311,9 @@
       setStatus(`Lỗi: ${err.message}`, true);
     } finally {
       btnSyncPlane.disabled = false;
-      btnSyncPlane.textContent = "🔄 Lưu PAT & Đồng bộ Projects / Modules từ Plane";
+      if (btnSyncPlaneLabel) {
+        btnSyncPlaneLabel.textContent = "Lưu PAT & Đồng bộ Projects / Modules";
+      }
     }
   });
 
@@ -300,7 +321,8 @@
     const mcpJson = JSON.stringify(
       {
         "mvl-ui-feedback-mcp": {
-          serverUrl: config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp",
+          serverUrl:
+            config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp",
         },
       },
       null,
@@ -315,7 +337,7 @@
   });
 
   async function loadHistory() {
-    historyList.innerHTML = `<div class="empty-state">⏳ Đang tải từ Cloudflare D1...</div>`;
+    historyList.innerHTML = `<div class="empty-state">Đang tải từ Cloudflare D1...</div>`;
     const workerBase = (
       config.workerBaseUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev"
     ).replace(/\/+$/, "");
@@ -331,24 +353,30 @@
         .map((it) => {
           const isQa = it.mode === "qa" && it.plane_task;
           const badge = isQa
-            ? `<a href="${it.plane_task.url}" target="_blank">📋 ${it.plane_task.identifier} (${
+            ? `<a href="${it.plane_task.url}" target="_blank">${it.plane_task.identifier} · ${
                 it.plane_task.module_name || it.plane_task.project_code
-              })</a>`
-            : `⚡ MCP: ${it.id}`;
+              }</a>`
+            : `MCP · ${it.id}`;
+          const thumbHtml = it.media_url
+            ? `<img class="history-thumb" src="${it.media_url}" alt="Crop" loading="lazy" />`
+            : "";
           return `
             <div class="history-item">
-              <div class="history-top">
-                <span class="history-id">${badge}</span>
-                <span class="env-pill ${it.env}">${it.env}</span>
-              </div>
-              <div class="history-comment">${it.comment}</div>
-              <div class="history-meta">
-                🔗 ${it.pathname || it.page_url}
-                ${
-                  it.media_url
-                    ? ` • <a href="${it.media_url}" target="_blank" style="color:#60a5fa;">Xem ảnh Crop R2</a>`
-                    : ""
-                }
+              ${thumbHtml}
+              <div class="history-body">
+                <div class="history-top">
+                  <span class="history-id">${badge}</span>
+                  <span class="env-pill ${it.env}">${it.env}</span>
+                </div>
+                <div class="history-comment">${it.comment}</div>
+                <div class="history-meta">
+                  <span>${it.pathname || it.page_url}</span>
+                  ${
+                    it.media_url
+                      ? `<a href="${it.media_url}" target="_blank">Ảnh R2 ↗</a>`
+                      : ""
+                  }
+                </div>
               </div>
             </div>
           `;

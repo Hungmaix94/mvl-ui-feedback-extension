@@ -1,14 +1,23 @@
 /**
  * MVL UI Feedback — Content Script (Runs on Production, Dev Online & Localhost)
- * - Default mode: Drag-to-Crop Screenshot + Auto-capture Current URL + Multi-Anchor DOM/React Fingerprint + Inline Comment
- * - Dual workflow:
- *   * DEV Mode -> Pushes directly to Cloudflare Remote MCP Server (`/mcp`)
- *   * QA Mode  -> Creates Plane Task using configured Plane PAT (with Project & Module selection) + Saves to MCP
+ * Design-Engineered UI: Crisp SVG icons, Hero Crop Preview, Live Dimension Readout,
+ * Segmented DEV/QA Switcher, Auto-Detect Project/Module & Keyboard-first ergonomics.
  */
 
 (function () {
   if (window.__MVL_FEEDBACK_CONTENT_LOADED__) return;
   window.__MVL_FEEDBACK_CONTENT_LOADED__ = true;
+
+  const ICONS = {
+    crop: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>`,
+    video: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`,
+    terminal: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>`,
+    layers: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
+    link: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+    code: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
+    send: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,
+    close: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  };
 
   let currentConfig = Object.assign({}, window.MVL_DEFAULT_CONFIG || {});
   let floatingPill = null;
@@ -19,7 +28,6 @@
   let mediaRecorder = null;
   let recordedChunks = [];
 
-  // Inject MAIN world bridge to inspect React Fiber (`__reactFiber$`) & Performance API
   function injectPageBridge() {
     try {
       if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL) {
@@ -56,7 +64,7 @@
     floatingPill = document.createElement("div");
     floatingPill.className = "mvl-fb-floating-pill";
     floatingPill.id = "mvl-fb-floating-pill";
-    floatingPill.title = "MVL UI Feedback (Alt+Shift+C): Khoanh vùng Crop ảnh & gửi Feedback";
+    floatingPill.title = "MVL UI Feedback (Alt+Shift+C): Khoanh vùng chụp ảnh Crop & gửi Feedback";
     floatingPill.addEventListener("click", () => {
       startCaptureFlow(currentConfig.captureType || "crop");
     });
@@ -70,11 +78,12 @@
       floatingPill.style.display = "none";
       return;
     }
-    floatingPill.style.display = "flex";
+    floatingPill.style.display = "inline-flex";
     const isQa = (currentConfig.mode || "qa") === "qa";
     floatingPill.innerHTML = `
-      <span>✂️ UI Feedback</span>
-      <span class="mvl-fb-pill-mode ${isQa ? "qa" : "dev"}">${isQa ? "QA → PLANE" : "DEV → MCP"}</span>
+      <span class="mvl-fb-pill-icon">${ICONS.crop}</span>
+      <span>Feedback</span>
+      <span class="mvl-fb-pill-mode ${isQa ? "qa" : "dev"}">${isQa ? "QA · PLANE" : "DEV · MCP"}</span>
     `;
   }
 
@@ -126,7 +135,6 @@
       borderRadius: cs.borderRadius,
     };
 
-    // Collect visible text anchors inside the cropped rectangle
     const textAnchors = [];
     const candidates = document.querySelectorAll("button, a, h1, h2, h3, h4, th, td, label, span, p, input");
     for (const node of candidates) {
@@ -226,19 +234,22 @@
       return canvas.toDataURL("image/png");
     }
 
-    // Fallback visual snapshot if run outside extension background tab capture
+    // Crisp fallback card if run in automated headless DOM mode without extension background tab capture
     ctx.scale(dpr, dpr);
-    ctx.fillStyle = "#0f172a";
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, "#0f172a");
+    grad.addColorStop(1, "#1e293b");
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
-    ctx.strokeStyle = "#3b82f6";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(2, 2, w - 4, h - 4);
+    ctx.strokeStyle = "rgba(96, 165, 250, 0.55)";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(1, 1, w - 2, h - 2);
     ctx.fillStyle = "#f8fafc";
-    ctx.font = "bold 13px sans-serif";
-    ctx.fillText(`Crop Region (${w}x${h}) @ ${window.location.pathname}`, 12, 26);
+    ctx.font = "600 13px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.fillText(`Cropped UI Region (${w} × ${h}px)`, 14, 28);
     ctx.fillStyle = "#93c5fd";
-    ctx.font = "11px monospace";
-    ctx.fillText(window.location.href.slice(0, 56), 12, 46);
+    ctx.font = "11px ui-monospace, monospace";
+    ctx.fillText(window.location.href.slice(0, 58), 14, 48);
     return canvas.toDataURL("image/png");
   }
 
@@ -279,11 +290,11 @@
     activeTopBar.className = "mvl-fb-top-bar";
     const isQa = (currentConfig.mode || "qa") === "qa";
     activeTopBar.innerHTML = `
-      <span><strong>✂️ Kéo chuột khoanh vùng Crop</strong> (hoặc Click phần tử)</span>
-      <button type="button" id="mvl-top-mode-dev" class="${!isQa ? "active" : ""}">👨‍💻 DEV → MCP</button>
-      <button type="button" id="mvl-top-mode-qa" class="${isQa ? "qa-active" : ""}">🕵️‍♀️ QA → Plane</button>
-      <button type="button" id="mvl-top-switch-video">🎥 Quay Video</button>
-      <button type="button" id="mvl-top-cancel">✕ Thoát (ESC)</button>
+      <span class="mvl-fb-top-hint">${ICONS.crop} <span>Kéo chuột khoanh vùng lỗi hoặc Click phần tử</span></span>
+      <button type="button" id="mvl-top-mode-dev" class="${!isQa ? "active" : ""}">${ICONS.terminal} <span>DEV → MCP</span></button>
+      <button type="button" id="mvl-top-mode-qa" class="${isQa ? "qa-active" : ""}">${ICONS.layers} <span>QA → Plane</span></button>
+      <button type="button" id="mvl-top-switch-video">${ICONS.video} <span>Video</span></button>
+      <button type="button" id="mvl-top-cancel">${ICONS.close} <span>ESC</span></button>
     `;
     document.body.appendChild(activeTopBar);
 
@@ -316,6 +327,7 @@
     selectionBox = document.createElement("div");
     selectionBox.className = "mvl-fb-selection-box";
     selectionBox.style.display = "none";
+    selectionBox.innerHTML = `<div class="mvl-fb-selection-dims" id="mvl-fb-dims-pill">0 × 0</div>`;
     document.body.appendChild(selectionBox);
 
     let isDragging = false;
@@ -338,12 +350,14 @@
       if (!isDragging) return;
       const x = Math.min(startX, e.clientX);
       const y = Math.min(startY, e.clientY);
-      const w = Math.abs(e.clientX - startX);
-      const h = Math.abs(e.clientY - startY);
+      const w = Math.round(Math.abs(e.clientX - startX));
+      const h = Math.round(Math.abs(e.clientY - startY));
       selectionBox.style.left = `${x}px`;
       selectionBox.style.top = `${y}px`;
       selectionBox.style.width = `${w}px`;
       selectionBox.style.height = `${h}px`;
+      const dimsEl = selectionBox.querySelector("#mvl-fb-dims-pill");
+      if (dimsEl) dimsEl.textContent = `${w} × ${h} px`;
     }
 
     async function onMouseUp(e) {
@@ -356,7 +370,6 @@
 
       cleanupOverlay();
 
-      // If user clicked a single point without dragging, snap to target DOM element bounding box
       if (w < 12 && h < 12) {
         const el = document.elementFromPoint(e.clientX, e.clientY) || document.body;
         const r = el.getBoundingClientRect();
@@ -378,7 +391,6 @@
       const domFp = extractDomFingerprintInRect(cropRect);
       const bridgeData = await inspectPointViaBridge(domFp.centerX, domFp.centerY);
 
-      // Wait one animation frame so overlay is completely gone before screenshot
       await new Promise((r) => setTimeout(r, 40));
       const croppedDataUrl = await captureAndCropRect(cropRect);
 
@@ -455,8 +467,8 @@
       activeTopBar = document.createElement("div");
       activeTopBar.className = "mvl-fb-top-bar";
       activeTopBar.innerHTML = `
-        <span>🔴 <strong>Đang quay Video màn hình...</strong> Thao tác lỗi rồi bấm Dừng</span>
-        <button type="button" id="mvl-stop-video" class="active">⏹️ Dừng & Nhập Comment</button>
+        <span class="mvl-fb-top-hint">${ICONS.video} <span>Đang quay Video màn hình...</span></span>
+        <button type="button" id="mvl-stop-video" class="active">Dừng & Nhập Comment</button>
       `;
       document.body.appendChild(activeTopBar);
       activeTopBar.querySelector("#mvl-stop-video").addEventListener("click", () => {
@@ -493,15 +505,14 @@
     activePopover.className = "mvl-fb-popover";
     activePopover.id = "mvl-fb-popover";
 
-    // Position popover near the cropped area, clamped inside viewport
-    const popWidth = 390;
-    const popHeight = 350;
-    let left = cropRect.x + cropRect.width + 14;
-    if (left + popWidth > window.innerWidth - 12) {
-      left = Math.max(12, cropRect.x - popWidth - 14);
+    const popWidth = 410;
+    const popHeight = 415;
+    let left = cropRect.x + cropRect.width + 16;
+    if (left + popWidth > window.innerWidth - 14) {
+      left = Math.max(14, cropRect.x - popWidth - 16);
     }
-    if (left < 12) left = Math.max(12, Math.min(cropRect.x, window.innerWidth - popWidth - 12));
-    let top = Math.min(Math.max(12, cropRect.y), Math.max(12, window.innerHeight - popHeight - 16));
+    if (left < 14) left = Math.max(14, Math.min(cropRect.x, window.innerWidth - popWidth - 14));
+    let top = Math.min(Math.max(14, cropRect.y), Math.max(14, window.innerHeight - popHeight - 16));
 
     activePopover.style.left = `${left}px`;
     activePopover.style.top = `${top}px`;
@@ -535,28 +546,42 @@
       activePopover.innerHTML = `
         <div class="mvl-fb-popover-header">
           <div class="mvl-fb-mode-switch">
-            <button type="button" id="mvl-pop-mode-dev" class="${!isQa ? "active-dev" : ""}">👨‍💻 DEV (Bắn vào MCP)</button>
-            <button type="button" id="mvl-pop-mode-qa" class="${isQa ? "active-qa" : ""}">🕵️‍♀️ QA (Tạo Task Plane)</button>
+            <button type="button" id="mvl-pop-mode-dev" class="${!isQa ? "active-dev" : ""}">
+              ${ICONS.terminal}
+              <span>DEV · MCP</span>
+            </button>
+            <button type="button" id="mvl-pop-mode-qa" class="${isQa ? "active-qa" : ""}">
+              ${ICONS.layers}
+              <span>QA · Plane</span>
+            </button>
           </div>
-          <span class="mvl-fb-env-badge ${selectedEnv}" id="mvl-pop-env-badge" title="Click để đổi môi trường">[${selectedEnv}]</span>
+          <span class="mvl-fb-env-badge ${selectedEnv}" id="mvl-pop-env-badge" title="Click để chuyển đổi môi trường">${selectedEnv}</span>
         </div>
 
-        <div class="mvl-fb-preview-row">
-          ${
-            mediaType === "video"
-              ? `<div class="mvl-fb-preview-thumb" style="display:flex;align-items:center;justify-content:center;font-size:20px;">🎥</div>`
-              : `<img class="mvl-fb-preview-thumb" src="${mediaDataUrl}" alt="Crop Preview" />`
-          }
-          <div class="mvl-fb-meta-col">
-            <div class="mvl-fb-url-line" title="${pageUrl}">🔗 ${pageUrl}</div>
-            <div class="mvl-fb-comp-line" title="${compLabel}">🧬 ${compLabel}</div>
-            <div class="mvl-fb-comp-line" style="color:#94a3b8;">📐 Vùng chọn: ${cropRect.width}×${cropRect.height}px</div>
+        <div class="mvl-fb-crop-card">
+          <div class="mvl-fb-crop-stage">
+            ${
+              mediaType === "video"
+                ? `<div style="display:flex;align-items:center;gap:8px;color:#93c5fd;font-weight:600;">${ICONS.video} <span>Video Recording Ready</span></div>`
+                : `<img class="mvl-fb-preview-thumb" src="${mediaDataUrl}" alt="Crop Preview" />`
+            }
+            <span class="mvl-fb-crop-dim-tag">${cropRect.width} × ${cropRect.height} px</span>
+          </div>
+          <div class="mvl-fb-meta-strip">
+            <div class="mvl-fb-meta-row" title="${pageUrl}">
+              ${ICONS.link}
+              <span>${pageUrl}</span>
+            </div>
+            <div class="mvl-fb-meta-row" title="${compLabel}">
+              ${ICONS.code}
+              <code>${compLabel}</code>
+            </div>
           </div>
         </div>
 
         <div class="mvl-fb-qa-selectors" style="display: ${isQa ? "grid" : "none"};">
           <div class="mvl-fb-field">
-            <label>Dự án Plane (Auto-detected)</label>
+            <label><span>Project Plane</span><span style="color:#34d399;font-size:9.5px;">Auto</span></label>
             <select id="mvl-pop-project">
               ${enabledProjects
                 .map(
@@ -569,7 +594,7 @@
             </select>
           </div>
           <div class="mvl-fb-field">
-            <label>Module / Phân hệ</label>
+            <label><span>Module / Phân hệ</span></label>
             <select id="mvl-pop-module">
               <option value="">-- Không gắn Module --</option>
               ${modules
@@ -584,34 +609,38 @@
           </div>
         </div>
 
-        <textarea
-          id="mvl-pop-comment"
-          class="mvl-fb-textarea"
-          placeholder="${
-            isQa
-              ? "Nhập mô tả lỗi UI / Nghiệp vụ... (Ấn Cmd+Enter để tạo Task lên Plane)"
-              : "Nhập yêu cầu sửa UI cho AI... (Ấn Cmd+Enter để bắn thẳng vào MCP)"
-          }"
-        ></textarea>
+        <div class="mvl-fb-textarea-wrap">
+          <textarea
+            id="mvl-pop-comment"
+            class="mvl-fb-textarea"
+            placeholder="${
+              isQa
+                ? "Nhập mô tả lỗi UI / Nghiệp vụ cần xử lý..."
+                : "Nhập yêu cầu chỉnh sửa UI cho AI Agent..."
+            }"
+          ></textarea>
+          <span class="mvl-fb-kbd-hint">⌘ + Enter để gửi</span>
+        </div>
 
         <div class="mvl-fb-actions">
-          <div class="mvl-fb-pat-badge" title="Account Plane PAT đang gắn">
-            ${
+          <div class="mvl-fb-pat-badge" title="Account Plane PAT đang kết nối">
+            <span class="mvl-fb-pat-dot" style="background:${isQa ? "#10b981" : "#3b82f6"}"></span>
+            <span>${
               isQa
-                ? `🔑 PAT: ${patUser} (${currentConfig.planeWorkspaceSlug || "glinteco"})`
-                : `⚡ Cloudflare Remote MCP Queue`
-            }
+                ? `${patUser} · ${currentConfig.planeWorkspaceSlug || "glinteco"}`
+                : `Cloudflare Remote MCP`
+            }</span>
           </div>
           <div class="mvl-fb-btn-group">
             <button type="button" class="mvl-fb-btn-cancel" id="mvl-pop-cancel">Hủy</button>
             <button type="button" class="mvl-fb-btn-submit ${isQa ? "qa" : ""}" id="mvl-pop-submit">
-              ${isQa ? "🚀 Tạo Task Plane" : "⚡ Bắn vào MCP"}
+              ${ICONS.send}
+              <span>${isQa ? "Tạo Task Plane" : "Gửi vào MCP"}</span>
             </button>
           </div>
         </div>
       `;
 
-      // Bind mode switches
       activePopover.querySelector("#mvl-pop-mode-dev").addEventListener("click", () => {
         selectedMode = "dev";
         saveConfigPatch({ mode: "dev" });
@@ -623,14 +652,12 @@
         renderPopoverContent();
       });
 
-      // Bind Env badge cycle (PROD -> DEV-ONL -> LOCAL)
       activePopover.querySelector("#mvl-pop-env-badge").addEventListener("click", () => {
         const order = ["DEV-ONL", "PROD", "LOCAL"];
         selectedEnv = order[(order.indexOf(selectedEnv) + 1) % order.length];
         renderPopoverContent();
       });
 
-      // Bind project change -> reload modules
       const projSelect = activePopover.querySelector("#mvl-pop-project");
       if (projSelect) {
         projSelect.addEventListener("change", async (e) => {
@@ -693,7 +720,7 @@
           return;
         }
         submitBtn.disabled = true;
-        submitBtn.textContent = "Đang gửi...";
+        submitBtn.innerHTML = `<span>Đang đồng bộ...</span>`;
 
         const allProjects = getEnabledProjects();
         const projObj = allProjects.find((p) => p.id === selectedProjectId) || allProjects[0];
@@ -744,19 +771,19 @@
 
         if (!result || !result.ok) {
           submitBtn.disabled = false;
-          submitBtn.textContent = "Thử lại";
-          showToast(`❌ Lỗi khi gửi: ${result?.error || "Không xác định"}`, true);
+          submitBtn.innerHTML = `${ICONS.send} <span>Thử lại</span>`;
+          showToast(`Không thể gửi: ${result?.error || "Lỗi kết nối"}`, true);
           return;
         }
 
         closePopover();
         if (selectedMode === "qa" && result.planeIssue) {
           showToast(
-            `✅ Đã tạo Task Plane: <a href="${result.planeIssue.url}" target="_blank">[${result.planeIssue.identifier}]</a> (${result.planeIssue.moduleName || result.planeIssue.projectCode})<br/><span style="font-size:11px;color:#94a3b8;">Đã lưu ảnh Crop R2 & ngữ cảnh vào MCP!</span>`
+            `<div style="font-weight:600;margin-bottom:2px;">Đã tạo Task trên Plane: <a href="${result.planeIssue.url}" target="_blank">${result.planeIssue.identifier}</a></div><div style="font-size:11px;color:#94a3b8;">Phân hệ: ${result.planeIssue.moduleName || result.planeIssue.projectCode} · Đã lưu ảnh Crop R2 & MCP</div>`
           );
         } else {
           showToast(
-            `⚡ Đã bắn vào Cloudflare MCP: <strong>${result.id}</strong><br/><span style="font-size:11px;color:#93c5fd;">Gõ với AI: "Xử lý feedback UI mới nhất (${result.id})"</span>`
+            `<div style="font-weight:600;margin-bottom:2px;">Đã đẩy vào Cloudflare MCP · <code style="color:#93c5fd;">${result.id}</code></div><div style="font-size:11px;color:#94a3b8;">Nhắn AI: "Xử lý feedback UI mới nhất (${result.id})"</div>`
           );
         }
       });
@@ -769,15 +796,14 @@
   function showToast(htmlContent, isError = false) {
     const toast = document.createElement("div");
     toast.className = "mvl-fb-toast";
-    if (isError) toast.style.borderColor = "#ef4444";
+    if (isError) toast.style.borderColor = "rgba(239, 68, 68, 0.55)";
     toast.innerHTML = htmlContent;
     document.body.appendChild(toast);
     setTimeout(() => {
       toast.remove();
-    }, 7000);
+    }, 6500);
   }
 
-  // Listen to messages from Extension Popup or Background Shortcut
   if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
     chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       if (msg?.type === "MVL_START_CAPTURE") {
@@ -805,7 +831,6 @@
     }
   });
 
-  // Expose helper for programmatic verification / E2E tests
   window.__MVL_FEEDBACK_WIDGET__ = {
     startCaptureFlow,
     openFeedbackPopover,

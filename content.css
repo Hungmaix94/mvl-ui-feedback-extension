@@ -1,282 +1,514 @@
-/* MVL UI Feedback — Antigravity Artifact-style Inline Crop & Comment Overlay */
+/* ==========================================================================
+   MVL UI Feedback — Design-Engineered Inline Crop & Comment Experience
+   Inspired by Linear, Vercel Toolbar & Antigravity Artifact Inline Commenting
+   Principles: Concentric radii, 1px specular hairlines, custom cubic-bezier,
+   scale(0.96) tactile press, tabular-nums, zero `transition: all`.
+   ========================================================================== */
 
-.mvl-fb-floating-pill {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 2147483640;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #0f172a;
-  color: #f8fafc;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  border-radius: 9999px;
-  padding: 7px 13px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.5);
-  cursor: pointer;
-  user-select: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+:root {
+  --mvl-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --mvl-ease-spring: cubic-bezier(0.2, 0, 0, 1);
+  --mvl-bg-glass: rgba(11, 15, 25, 0.92);
+  --mvl-bg-surface: rgba(22, 29, 45, 0.88);
+  --mvl-bg-elevated: rgba(30, 41, 59, 0.75);
+  --mvl-border-hairline: rgba(255, 255, 255, 0.09);
+  --mvl-border-strong: rgba(255, 255, 255, 0.16);
+  --mvl-accent-dev: #3b82f6;
+  --mvl-accent-qa: #10b981;
+  --mvl-text-primary: #f8fafc;
+  --mvl-text-secondary: #94a3b8;
+  --mvl-text-muted: #64748b;
+  --mvl-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mvl-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-.mvl-fb-floating-pill:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px -5px rgba(37, 99, 235, 0.45);
-  border-color: #3b82f6;
+/* Floating Trigger Pill (Bottom-Right) */
+.mvl-fb-floating-pill {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2147483640;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--mvl-bg-glass);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  color: var(--mvl-text-primary);
+  border: 1px solid var(--mvl-border-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 32px -6px rgba(2, 6, 23, 0.65),
+    0 4px 12px -2px rgba(2, 6, 23, 0.45);
+  border-radius: 9999px;
+  padding: 7px 10px 7px 13px;
+  font-family: var(--mvl-font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 150ms var(--mvl-ease-out),
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .mvl-fb-floating-pill:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      0 18px 38px -8px rgba(2, 6, 23, 0.78),
+      0 0 0 3px rgba(59, 130, 246, 0.18);
+  }
+}
+
+.mvl-fb-floating-pill:active {
+  transform: scale(0.96);
+}
+
+.mvl-fb-pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  color: #cbd5e1;
 }
 
 .mvl-fb-pill-mode {
-  padding: 2px 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
   border-radius: 999px;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mvl-fb-pill-mode::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 }
 
 .mvl-fb-pill-mode.dev {
-  background: rgba(59, 130, 246, 0.22);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.mvl-fb-pill-mode.dev::before {
+  background: #60a5fa;
+  box-shadow: 0 0 8px #3b82f6;
 }
 
 .mvl-fb-pill-mode.qa {
-  background: rgba(16, 185, 129, 0.22);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.16);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.35);
 }
 
-/* Crop Overlay Canvas */
+.mvl-fb-pill-mode.qa::before {
+  background: #34d399;
+  box-shadow: 0 0 8px #10b981;
+}
+
+/* Crop Crosshair Canvas Overlay */
 .mvl-fb-overlay {
   position: fixed;
   inset: 0;
   z-index: 2147483642;
   cursor: crosshair;
-  background: rgba(15, 23, 42, 0.18);
+  background: rgba(2, 6, 23, 0.22);
   user-select: none;
 }
 
+/* Top HUD Toolbar during Capture */
 .mvl-fb-top-bar {
   position: fixed;
-  top: 14px;
+  top: 18px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2147483645;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  background: #0f172a;
-  color: #f8fafc;
-  padding: 8px 14px;
+  gap: 8px;
+  background: var(--mvl-bg-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  color: var(--mvl-text-primary);
+  padding: 6px 8px 6px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  border: 1px solid var(--mvl-border-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 20px 42px -10px rgba(2, 6, 23, 0.72);
+  font-family: var(--mvl-font-sans);
   font-size: 12px;
+  white-space: nowrap;
+}
+
+.mvl-fb-top-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #e2e8f0;
+  font-weight: 500;
+  padding-right: 6px;
+  border-right: 1px solid var(--mvl-border-hairline);
 }
 
 .mvl-fb-top-bar button {
-  background: rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  border: 1px solid transparent;
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 5px 11px;
+  font-family: var(--mvl-font-sans);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    transform 150ms var(--mvl-ease-out),
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.mvl-fb-top-bar button:active {
+  transform: scale(0.96);
 }
 
 .mvl-fb-top-bar button.active {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.22);
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.45);
 }
 
 .mvl-fb-top-bar button.qa-active {
-  background: #059669;
-  color: #ffffff;
-  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.22);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.45);
 }
 
+/* Selection Region Box + Live Dimension Pill */
 .mvl-fb-selection-box {
   position: fixed;
   z-index: 2147483643;
-  border: 2px solid #3b82f6;
-  background: rgba(59, 130, 246, 0.12);
-  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.38);
-  border-radius: 4px;
+  border: 1.5px solid #60a5fa;
+  background: rgba(59, 130, 246, 0.06);
+  box-shadow:
+    0 0 0 9999px rgba(2, 6, 23, 0.48),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
   pointer-events: none;
 }
 
-/* Antigravity Artifact-style Inline Comment Card */
+.mvl-fb-selection-dims {
+  position: absolute;
+  bottom: -26px;
+  right: 0;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-family: var(--mvl-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   Antigravity Artifact-Style Inline Feedback Popover
+   Outer radius: 16px | Padding: 14px | Inner cards: 10px
+   ========================================================================== */
 .mvl-fb-popover {
   position: fixed;
   z-index: 2147483646;
-  width: 390px;
+  width: 410px;
   max-width: calc(100vw - 24px);
-  background: #0f172a;
-  color: #f8fafc;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 12px;
-  box-shadow: 0 24px 48px -12px rgba(2, 6, 23, 0.75);
+  background: var(--mvl-bg-glass);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  color: var(--mvl-text-primary);
+  border: 1px solid var(--mvl-border-strong);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 28px 60px -12px rgba(2, 6, 23, 0.82),
+    0 0 0 1px rgba(2, 6, 23, 0.6);
   padding: 14px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--mvl-font-sans);
   font-size: 12px;
+  transform-origin: top left;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition:
+    opacity 180ms var(--mvl-ease-out),
+    transform 180ms var(--mvl-ease-out);
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
 }
 
 .mvl-fb-popover-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   gap: 8px;
 }
 
+/* Segmented Role Switcher */
 .mvl-fb-mode-switch {
   display: inline-flex;
-  background: #1e293b;
-  padding: 2px;
-  border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.85);
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid var(--mvl-border-hairline);
 }
 
 .mvl-fb-mode-switch button {
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid transparent;
   background: transparent;
-  color: #94a3b8;
-  padding: 4px 9px;
+  color: var(--mvl-text-secondary);
+  padding: 5px 10px;
+  font-family: var(--mvl-font-sans);
   font-size: 11px;
   font-weight: 600;
-  border-radius: 6px;
+  border-radius: 7px;
   cursor: pointer;
+  transition:
+    transform 150ms var(--mvl-ease-out),
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.mvl-fb-mode-switch button:active {
+  transform: scale(0.96);
 }
 
 .mvl-fb-mode-switch button.active-dev {
-  background: #2563eb;
-  color: #ffffff;
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .mvl-fb-mode-switch button.active-qa {
-  background: #059669;
-  color: #ffffff;
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
+/* Environment Pill */
 .mvl-fb-env-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mvl-font-mono);
   font-size: 10px;
   font-weight: 700;
-  padding: 2px 7px;
+  padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
   border: 1px solid rgba(245, 158, 11, 0.35);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 150ms var(--mvl-ease-out);
+}
+
+.mvl-fb-env-badge:active {
+  transform: scale(0.96);
 }
 
 .mvl-fb-env-badge.PROD {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
   border-color: rgba(239, 68, 68, 0.4);
 }
 
 .mvl-fb-env-badge.LOCAL {
-  background: rgba(56, 189, 248, 0.2);
-  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.16);
+  color: #7dd3fc;
   border-color: rgba(56, 189, 248, 0.4);
 }
 
-.mvl-fb-preview-row {
+/* Hero Crop Preview Card */
+.mvl-fb-crop-card {
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid var(--mvl-border-hairline);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 11px;
+}
+
+.mvl-fb-crop-stage {
+  position: relative;
+  height: 112px;
+  background-color: #060911;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 12px 12px;
   display: flex;
-  gap: 10px;
   align-items: center;
-  background: #1e293b;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 8px;
-  padding: 8px;
-  margin-bottom: 10px;
+  justify-content: center;
+  overflow: hidden;
+  border-bottom: 1px solid var(--mvl-border-hairline);
 }
 
 .mvl-fb-preview-thumb {
-  width: 74px;
-  height: 52px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  background: #020617;
-  flex-shrink: 0;
+  max-width: 96%;
+  max-height: 102px;
+  object-fit: contain;
+  border-radius: 5px;
+  outline: 1px solid rgba(255, 255, 255, 0.12);
+  outline-offset: -1px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
-.mvl-fb-meta-col {
-  flex: 1;
-  min-width: 0;
+.mvl-fb-crop-dim-tag {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  background: rgba(9, 13, 22, 0.85);
+  backdrop-filter: blur(8px);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  padding: 2px 6px;
+  font-family: var(--mvl-font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mvl-fb-meta-strip {
+  padding: 7px 10px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
-.mvl-fb-url-line {
+.mvl-fb-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
-  color: #93c5fd;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mvl-fb-comp-line {
-  font-size: 10px;
   color: #cbd5e1;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.mvl-fb-meta-row code {
+  font-family: var(--mvl-font-mono);
+  font-size: 10.5px;
+  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.12);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* QA Project & Module Selectors */
 .mvl-fb-qa-selectors {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 11px;
 }
 
 .mvl-fb-field label {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 10px;
   font-weight: 600;
-  color: #94a3b8;
-  margin-bottom: 3px;
+  color: var(--mvl-text-secondary);
+  margin-bottom: 4px;
+  letter-spacing: 0.01em;
 }
 
 .mvl-fb-field select {
   width: 100%;
-  background: #1e293b;
-  color: #f8fafc;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 6px;
-  padding: 5px 7px;
-  font-size: 11px;
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--mvl-text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 6px 9px;
+  font-family: var(--mvl-font-sans);
+  font-size: 11.5px;
+  font-weight: 500;
   outline: none;
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.mvl-fb-field select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+/* Comment Input Box */
+.mvl-fb-textarea-wrap {
+  position: relative;
+  margin-bottom: 11px;
 }
 
 .mvl-fb-textarea {
   width: 100%;
-  min-height: 70px;
+  min-height: 76px;
   box-sizing: border-box;
-  background: #1e293b;
-  color: #f8fafc;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 12px;
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--mvl-text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 9px 11px 24px 11px;
+  font-family: var(--mvl-font-sans);
+  font-size: 12.5px;
   line-height: 1.45;
   resize: vertical;
   outline: none;
-  margin-bottom: 10px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.mvl-fb-textarea::placeholder {
+  color: var(--mvl-text-muted);
 }
 
 .mvl-fb-textarea:focus {
-  border-color: #3b82f6;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
 }
 
+.mvl-fb-kbd-hint {
+  position: absolute;
+  right: 9px;
+  bottom: 7px;
+  font-family: var(--mvl-font-mono);
+  font-size: 10px;
+  color: var(--mvl-text-muted);
+  pointer-events: none;
+}
+
+/* Footer Actions */
 .mvl-fb-actions {
   display: flex;
   align-items: center;
@@ -285,43 +517,80 @@
 }
 
 .mvl-fb-pat-badge {
-  font-size: 10px;
-  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: var(--mvl-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 170px;
+  max-width: 185px;
+}
+
+.mvl-fb-pat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
 }
 
 .mvl-fb-btn-group {
-  display: flex;
-  gap: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .mvl-fb-btn-cancel {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   color: #cbd5e1;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 7px;
-  padding: 6px 11px;
-  font-size: 11px;
+  border: 1px solid var(--mvl-border-hairline);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-family: var(--mvl-font-sans);
+  font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    transform 150ms var(--mvl-ease-out),
+    background-color 150ms ease;
+}
+
+.mvl-fb-btn-cancel:active {
+  transform: scale(0.96);
 }
 
 .mvl-fb-btn-submit {
-  background: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
   color: #ffffff;
-  border: none;
-  border-radius: 7px;
-  padding: 6px 13px;
-  font-size: 11px;
-  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 4px 14px rgba(37, 99, 235, 0.4);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-family: var(--mvl-font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
   cursor: pointer;
+  transition:
+    transform 150ms var(--mvl-ease-out),
+    filter 150ms ease;
 }
 
 .mvl-fb-btn-submit.qa {
-  background: #059669;
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 4px 14px rgba(5, 150, 105, 0.4);
+}
+
+.mvl-fb-btn-submit:not(:disabled):active {
+  transform: scale(0.96);
 }
 
 .mvl-fb-btn-submit:disabled {
@@ -329,24 +598,49 @@
   cursor: wait;
 }
 
+/* Sonner-Style Toast Notification */
 .mvl-fb-toast {
   position: fixed;
-  bottom: 62px;
-  right: 18px;
+  bottom: 66px;
+  right: 20px;
   z-index: 2147483647;
-  background: #0f172a;
-  color: #f8fafc;
-  border: 1px solid #10b981;
-  border-radius: 10px;
-  padding: 11px 14px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--mvl-bg-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  color: var(--mvl-text-primary);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  border-radius: 12px;
+  padding: 12px 15px;
+  font-family: var(--mvl-font-sans);
   font-size: 12px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
-  max-width: 380px;
+  line-height: 1.45;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 20px 44px -8px rgba(2, 6, 23, 0.75);
+  max-width: 390px;
+  transition:
+    opacity 200ms var(--mvl-ease-out),
+    transform 200ms var(--mvl-ease-out);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
 }
 
 .mvl-fb-toast a {
   color: #34d399;
   font-weight: 700;
   text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mvl-fb-floating-pill,
+  .mvl-fb-popover,
+  .mvl-fb-toast,
+  .mvl-fb-btn-submit,
+  .mvl-fb-btn-cancel {
+    transition: opacity 150ms ease !important;
+    transform: none !important;
+  }
 }
