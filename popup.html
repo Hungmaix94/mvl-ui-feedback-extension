@@ -36,8 +36,15 @@
         <span class="section-label">CHẾ ĐỘ LÀM VIỆC (ROLE MODE)</span>
         <span class="shortcut-hint"><kbd>Alt</kbd><kbd>Shift</kbd><kbd>F</kbd></span>
       </div>
-      <div class="mode-grid">
-        <button type="button" id="btn-mode-dev" class="mode-card">
+      <div class="mode-grid" role="radiogroup" aria-label="Chế độ làm việc">
+        <button
+          type="button"
+          id="btn-mode-dev"
+          class="mode-card"
+          role="radio"
+          aria-checked="false"
+          tabindex="-1"
+        >
           <div class="mode-card-top">
             <span class="mode-icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -51,7 +58,14 @@
           <p class="mode-desc">Đẩy thẳng vào Cloudflare MCP cho AI sửa code</p>
         </button>
 
-        <button type="button" id="btn-mode-qa" class="mode-card active-qa">
+        <button
+          type="button"
+          id="btn-mode-qa"
+          class="mode-card active-qa"
+          role="radio"
+          aria-checked="true"
+          tabindex="0"
+        >
           <div class="mode-card-top">
             <span class="mode-icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

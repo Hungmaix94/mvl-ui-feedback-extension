@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MVL UI Feedback — Crop to Plane & AI MCP",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Khoanh vùng chụp ảnh Crop / Video trên Production & Dev Online, tự động detect Project/Module, tạo Task Plane (QA) hoặc bắn thẳng vào Cloudflare Remote MCP (DEV).",
   "permissions": [
     "activeTab",
