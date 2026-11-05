@@ -224,8 +224,8 @@
 .mvl-fb-crop-stage,
 .mvl-fb-film-item {
   position: relative;
-  width: 44px;
-  height: 30px;
+  width: 48px;
+  height: 36px;
   border-radius: 6px;
   overflow: hidden;
   background-color: #f1f5f9;
@@ -278,6 +278,24 @@
   justify-content: center;
 }
 
+.mvl-fb-film-check {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3);
+}
+
 .mvl-fb-film-del {
   position: absolute;
   right: 1px;
@@ -303,8 +321,8 @@
 
 .mvl-fb-film-add {
   appearance: none;
-  height: 30px;
-  padding: 0 8px;
+  height: 36px;
+  padding: 0 9px;
   border-radius: 6px;
   border: 1px dashed #cbd5e1;
   background: #f8fafc;
