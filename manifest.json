@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "SnapUI — Visual Feedback for QA & FE",
-  "version": "2.0.0",
-  "description": "Fast visual crop & screen clip feedback for QA (Plane issues) and Frontend Developers (Remote AI MCP).",
+  "version": "2.1.0",
+  "description": "Ultra-compact visual feedback tool for QA (Plane issues) and Frontend Developers (AI Remote MCP).",
   "permissions": [
     "activeTab",
     "tabs",
@@ -16,7 +16,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "MVL UI Feedback (DEV MCP / QA Plane)",
+    "default_title": "SnapUI (QA Plane / FE MCP)",
     "default_popup": "popup.html"
   },
   "commands": {
@@ -25,7 +25,7 @@
         "default": "Alt+Shift+C",
         "mac": "Alt+Shift+C"
       },
-      "description": "Bắt đầu khoanh vùng chụp ảnh Crop & Comment"
+      "description": "Start visual crop & feedback"
     }
   },
   "content_scripts": [

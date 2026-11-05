@@ -2,36 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SnapUI — Visual Feedback for QA &amp; FE</title>
+  <title>SnapUI — Visual Feedback</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <div class="popup-shell">
-    <!-- Clean Header with One-Time Role Switch (QA | DEV) -->
+  <main class="popup-shell">
+    <!-- Top Bar: Brand + One-Time QA/DEV Switch -->
     <header class="popup-header">
       <div class="brand-group">
         <div class="brand-icon" aria-hidden="true">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 2v14a2 2 0 0 0 2 2h14"/>
             <path d="M18 22V8a2 2 0 0 0-2-2H2"/>
           </svg>
         </div>
         <span class="brand-name">SnapUI</span>
-        <span id="mcp-status-badge" class="status-dot-Only" title="Remote MCP &amp; Plane Ready"></span>
+        <span id="mcp-status-badge" class="status-dot" title="Online"></span>
       </div>
 
-      <!-- One-time Role Config Switch -->
-      <div class="role-pill-switch" role="group" aria-label="Role">
-        <button type="button" id="btn-mode-qa" class="role-pill active" title="QA Mode: Create Plane Issue">QA</button>
-        <button type="button" id="btn-mode-dev" class="role-pill" title="DEV Mode: Send to AI MCP">DEV</button>
+      <div class="role-pill-switch" role="radiogroup" aria-label="Working Role">
+        <button
+          type="button"
+          id="btn-mode-qa"
+          class="role-pill active"
+          role="radio"
+          aria-checked="true"
+          tabindex="0"
+          title="QA Mode: Create Plane Issues"
+        >
+          QA
+        </button>
+        <button
+          type="button"
+          id="btn-mode-dev"
+          class="role-pill"
+          role="radio"
+          aria-checked="false"
+          tabindex="-1"
+          title="DEV Mode: Send to AI MCP"
+        >
+          DEV
+        </button>
       </div>
     </header>
 
-    <!-- Primary Capture Bar -->
-    <section class="capture-bar">
+    <!-- Primary Capture CTA -->
+    <section class="capture-bar" aria-label="Capture actions">
       <button type="button" id="btn-start-crop" class="btn-capture-primary qa">
         <span class="btn-capture-left">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 2v14a2 2 0 0 0 2 2h14"/>
             <path d="M18 22V8a2 2 0 0 0-2-2H2"/>
           </svg>
@@ -40,7 +59,7 @@
         <kbd class="btn-kbd">⌥⇧C</kbd>
       </button>
 
-      <button type="button" id="btn-start-video" class="btn-capture-video" title="Record screen clip">
+      <button type="button" id="btn-start-video" class="btn-capture-video" title="Record video clip">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="23 7 16 12 23 17 23 7"/>
           <rect width="15" height="14" x="1" y="5" rx="2" ry="2"/>
@@ -48,102 +67,120 @@
       </button>
     </section>
 
-    <!-- Minimal Navigation Tabs -->
-    <nav class="segmented-tabs" role="tablist">
-      <button type="button" class="tab-btn active" data-tab="tab-project" role="tab">Workspace</button>
-      <button type="button" class="tab-btn" data-tab="tab-plane" role="tab">Connection</button>
-      <button type="button" class="tab-btn" data-tab="tab-history" role="tab">History</button>
+    <!-- Compact Pill Tabs -->
+    <nav class="segmented-tabs" role="tablist" aria-label="Sections">
+      <button
+        type="button"
+        id="tab-btn-project"
+        class="tab-btn active"
+        data-tab="tab-project"
+        role="tab"
+        aria-selected="true"
+        aria-controls="tab-project"
+        tabindex="0"
+      >
+        Context
+      </button>
+      <button
+        type="button"
+        id="tab-btn-plane"
+        class="tab-btn"
+        data-tab="tab-plane"
+        role="tab"
+        aria-selected="false"
+        aria-controls="tab-plane"
+        tabindex="-1"
+      >
+        Settings
+      </button>
+      <button
+        type="button"
+        id="tab-btn-history"
+        class="tab-btn"
+        data-tab="tab-history"
+        role="tab"
+        aria-selected="false"
+        aria-controls="tab-history"
+        tabindex="-1"
+      >
+        History
+      </button>
     </nav>
 
-    <!-- TAB 1: Workspace (Project & Module) -->
-    <main id="tab-project" class="tab-panel active">
-      <div class="surface-card">
-        <div class="url-preview-bar">
-          <span id="detected-env-pill" class="env-pill DEV-ONL">DEV</span>
-          <span id="detected-url-text" class="detected-url">Detecting URL...</span>
-        </div>
+    <!-- TAB 1: Minimal Context -->
+    <section id="tab-project" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-project">
+      <div class="url-preview-bar">
+        <span id="detected-env-pill" class="env-pill DEV-ONL">DEV</span>
+        <span id="detected-url-text" class="detected-url">Detecting URL...</span>
+      </div>
 
-        <div class="form-grid-2">
-          <div class="field-group">
-            <label for="select-default-project">Project</label>
-            <select id="select-default-project"></select>
-          </div>
-          <div class="field-group">
-            <label for="select-default-module">Module</label>
-            <select id="select-default-module"></select>
-          </div>
+      <div class="form-grid-2">
+        <div class="field-group">
+          <label for="select-default-project">Project</label>
+          <select id="select-default-project"></select>
+        </div>
+        <div class="field-group">
+          <label for="select-default-module">Module</label>
+          <select id="select-default-module"></select>
         </div>
       </div>
 
-      <div class="surface-card">
-        <div class="card-header">
-          <span class="card-title">Active Projects</span>
+      <details class="projects-expander">
+        <summary class="expander-summary">
+          <span>Filter projects</span>
           <div class="card-actions-inline">
             <button type="button" id="btn-toggle-add-project" class="btn-ghost-link">+ Add</button>
             <button type="button" id="btn-select-all-projects" class="btn-ghost-link">All</button>
           </div>
-        </div>
+        </summary>
 
         <div id="add-project-drawer" class="add-project-drawer" style="display: none;">
           <div class="form-grid-2">
-            <input type="text" id="input-new-proj-code" placeholder="Key (e.g. WEB)" />
-            <input type="text" id="input-new-proj-name" placeholder="Project Name" />
+            <input type="text" id="input-new-proj-code" placeholder="Key (WEB)" />
+            <input type="text" id="input-new-proj-name" placeholder="Name" />
           </div>
           <div class="add-proj-row-bottom">
-            <input type="text" id="input-new-proj-id" placeholder="Project UUID (optional)" />
-            <button type="button" id="btn-save-new-project" class="btn-save-mini">Add</button>
+            <input type="text" id="input-new-proj-id" placeholder="UUID (optional)" />
+            <button type="button" id="btn-save-new-project" class="btn-save-mini">Save</button>
           </div>
         </div>
 
         <div id="project-checklist" class="project-chip-grid"></div>
-      </div>
-    </main>
+      </details>
+    </section>
 
-    <!-- TAB 2: Connection (Plane PAT & MCP) -->
-    <main id="tab-plane" class="tab-panel">
+    <!-- TAB 2: Settings (Plane & MCP) -->
+    <section id="tab-plane" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-plane" hidden>
       <div class="account-card" id="plane-account-banner">
         <div class="account-avatar" id="account-avatar-initials">PH</div>
         <div class="account-meta">
-          <div class="account-name-row">
-            <span id="account-name-text" class="account-name">Connected Account</span>
-            <span class="verified-tag">Active</span>
-          </div>
-          <div id="account-email-text" class="account-email">Default Plane PAT</div>
+          <span id="account-name-text" class="account-name">Connected</span>
+          <span id="account-email-text" class="account-email">Default PAT</span>
         </div>
+        <span class="verified-tag">Active</span>
       </div>
 
-      <div class="surface-card">
+      <div class="field-group">
+        <label for="input-plane-pat">Plane PAT</label>
+        <input type="password" id="input-plane-pat" placeholder="plane_api_..." autocomplete="off" />
+      </div>
+
+      <div class="form-grid-2">
         <div class="field-group">
-          <label for="input-plane-pat">Plane API Token (PAT)</label>
-          <input
-            type="password"
-            id="input-plane-pat"
-            placeholder="plane_api_..."
-            autocomplete="off"
-          />
+          <label for="input-plane-host">Host</label>
+          <input type="text" id="input-plane-host" value="https://pm.glinteco.com" />
         </div>
-
-        <div class="form-grid-2">
-          <div class="field-group">
-            <label for="input-plane-host">Plane Host</label>
-            <input type="text" id="input-plane-host" value="https://pm.glinteco.com" />
-          </div>
-          <div class="field-group">
-            <label for="input-plane-workspace">Workspace</label>
-            <input type="text" id="input-plane-workspace" value="glinteco" />
-          </div>
+        <div class="field-group">
+          <label for="input-plane-workspace">Workspace</label>
+          <input type="text" id="input-plane-workspace" value="glinteco" />
         </div>
-
-        <button type="button" id="btn-sync-plane" class="btn-sync-action">
-          <span id="btn-sync-plane-label">Sync Projects &amp; Modules</span>
-        </button>
       </div>
 
-      <div class="surface-card">
-        <div class="card-header">
-          <span class="card-title">Remote MCP Endpoint</span>
-          <button type="button" id="btn-copy-mcp" class="btn-ghost-link">Copy Config</button>
-        </div>
+      <button type="button" id="btn-sync-plane" class="btn-sync-action">
+        <span id="btn-sync-plane-label">Sync Plane</span>
+      </button>
+
+      <div class="mcp-inline-row">
         <input
           type="text"
           id="input-mcp-url"
@@ -151,30 +188,31 @@
           readonly
           value="https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp"
         />
+        <button type="button" id="btn-copy-mcp" class="btn-ghost-link">Copy MCP</button>
       </div>
-    </main>
+    </section>
 
     <!-- TAB 3: History -->
-    <main id="tab-history" class="tab-panel">
+    <section id="tab-history" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-history" hidden>
       <div class="history-toolbar">
-        <span class="card-title">Recent Captures</span>
+        <span class="card-title">Recent</span>
         <button type="button" id="btn-refresh-history" class="btn-ghost-link">Refresh</button>
       </div>
       <div id="history-list" class="history-feed">
         <div class="empty-state">Loading...</div>
       </div>
-    </main>
+    </section>
 
-    <!-- Clean Footer -->
+    <!-- Minimal Footer -->
     <footer class="popup-footer">
       <label class="toggle-row">
         <input type="checkbox" id="chk-floating-pill" checked />
         <span class="toggle-track"><span class="toggle-thumb"></span></span>
         <span class="toggle-label">Floating button</span>
       </label>
-      <span id="status-msg" class="status-toast"></span>
+      <span id="status-msg" class="status-toast" role="status" aria-live="polite"></span>
     </footer>
-  </div>
+  </main>
 
   <script src="default-config.js"></script>
   <script src="popup.js"></script>

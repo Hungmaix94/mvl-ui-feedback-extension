@@ -38,12 +38,25 @@
 
   function setStatus(text, isError = false) {
     statusMsg.textContent = text;
-    statusMsg.style.color = isError ? "#fb7185" : "#34d399";
+    statusMsg.style.color = isError ? "#e11d48" : "#059669";
     if (text) {
       setTimeout(() => {
         if (statusMsg.textContent === text) statusMsg.textContent = "";
       }, 3200);
     }
+  }
+
+  /**
+   * P0 Security: Robust HTML entity sanitizer
+   */
+  function escapeHtml(str) {
+    if (str == null) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   async function loadStoredConfig() {
@@ -104,9 +117,9 @@
     selectDefaultProject.innerHTML = enabledProjects
       .map(
         (p) =>
-          `<option value="${p.id}" data-code="${p.identifier}" ${
+          `<option value="${escapeHtml(p.id)}" data-code="${escapeHtml(p.identifier)}" ${
             p.id === targetProjectId ? "selected" : ""
-          }>[${p.identifier}] ${p.name}</option>`
+          }>[${escapeHtml(p.identifier)}] ${escapeHtml(p.name)}</option>`
       )
       .join("");
 
@@ -120,9 +133,9 @@
       mods
         .map(
           (m) =>
-            `<option value="${m.id}" data-name="${m.name}" ${
+            `<option value="${escapeHtml(m.id)}" data-name="${escapeHtml(m.name)}" ${
               m.id === selectedModuleId ? "selected" : ""
-            }>${m.name}</option>`
+            }>${escapeHtml(m.name)}</option>`
         )
         .join("");
   }
@@ -134,12 +147,12 @@
       .map((p) => {
         const isChecked = enabled.has(p.identifier);
         return `
-          <label class="project-check-item ${isChecked ? "checked" : ""}" title="${p.name}">
+          <label class="project-check-item ${isChecked ? "checked" : ""}" title="${escapeHtml(p.name)}">
             <div class="project-code-label">
-              <strong>${p.identifier}</strong>
-              <span class="project-code-sub">${p.name}</span>
+              <strong>${escapeHtml(p.identifier)}</strong>
+              <span class="project-code-sub">${escapeHtml(p.name)}</span>
             </div>
-            <input type="checkbox" value="${p.identifier}" ${isChecked ? "checked" : ""} />
+            <input type="checkbox" value="${escapeHtml(p.identifier)}" ${isChecked ? "checked" : ""} />
           </label>
         `;
       })
@@ -387,12 +400,12 @@
         .map((it) => {
           const isQa = it.mode === "qa" && it.plane_task;
           const badge = isQa
-            ? `<a href="${it.plane_task.url}" target="_blank">${it.plane_task.identifier} · ${
-                it.plane_task.module_name || it.plane_task.project_code
-              }</a>`
-            : `MCP · ${it.id}`;
+            ? `<a href="${escapeHtml(it.plane_task.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.plane_task.identifier)} · ${escapeHtml(
+                it.plane_task.module_name || it.plane_task.project_code || ""
+              )}</a>`
+            : `MCP · ${escapeHtml(it.id)}`;
           const thumbHtml = it.media_url
-            ? `<img class="history-thumb" src="${it.media_url}" alt="Crop" loading="lazy" />`
+            ? `<img class="history-thumb" src="${escapeHtml(it.media_url)}" alt="Crop" loading="lazy" />`
             : "";
           return `
             <div class="history-item">
@@ -400,14 +413,14 @@
               <div class="history-body">
                 <div class="history-top">
                   <span class="history-id">${badge}</span>
-                  <span class="env-pill ${it.env}">${it.env}</span>
+                  <span class="env-pill ${escapeHtml(it.env)}">${escapeHtml(it.env)}</span>
                 </div>
-                <div class="history-comment">${it.comment}</div>
+                <div class="history-comment">${escapeHtml(it.comment)}</div>
                 <div class="history-meta">
-                  <span>${it.pathname || it.page_url}</span>
+                  <span>${escapeHtml(it.pathname || it.page_url || "")}</span>
                   ${
                     it.media_url
-                      ? `<a href="${it.media_url}" target="_blank">Ảnh R2 ↗</a>`
+                      ? `<a href="${escapeHtml(it.media_url)}" target="_blank" rel="noopener noreferrer">Ảnh R2 ↗</a>`
                       : ""
                   }
                 </div>

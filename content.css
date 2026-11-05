@@ -1,105 +1,104 @@
 /* ==========================================================================
-   SnapUI — Clean, Minimal Visual Feedback Overlay & Popover for FE & QA (v2.0.0)
-   - Zero verbose text, zero mode-switcher clutter during capture
-   - Adapts automatically to the one-time QA / DEV role configured in Popup
+   SnapUI — In-Page Overlay & Micro-Popover (v2.1 Bright Daylight + Multi-Batch)
    ========================================================================== */
 
-:root {
-  --snap-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --snap-bg: rgba(18, 19, 22, 0.96);
-  --snap-card: #18191d;
-  --snap-input: #101114;
-  --snap-border: rgba(255, 255, 255, 0.1);
-  --snap-border-strong: rgba(255, 255, 255, 0.18);
-  --snap-qa: #10b981;
-  --snap-dev: #3b82f6;
-  --snap-text: #f4f4f6;
-  --snap-muted: #9ca3af;
-  --snap-dim: #6b7280;
-  --snap-sans: -apple-system, BlinkMacSystemFont, "Inter", "Plus Jakarta Sans", sans-serif;
-  --snap-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
-}
-
-/* Floating Trigger Button (Bottom-Right) */
 .mvl-fb-floating-pill {
   position: fixed;
-  right: 18px;
-  bottom: 18px;
+  right: 16px;
+  bottom: 16px;
   z-index: 2147483640;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  background: var(--snap-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  color: var(--snap-text);
-  border: 1px solid var(--snap-border-strong);
-  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.65);
+  gap: 6px;
+  height: 32px;
+  padding: 0 11px;
   border-radius: 999px;
-  padding: 6.5px 11px;
-  font-family: var(--snap-sans);
-  font-size: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Plus Jakarta Sans", sans-serif;
+  font-size: 11.5px;
   font-weight: 600;
+  letter-spacing: -0.01em;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 18px -4px rgba(15, 23, 42, 0.12), 0 2px 6px -1px rgba(15, 23, 42, 0.06);
   cursor: pointer;
   user-select: none;
-  transition: transform 140ms var(--snap-ease), border-color 140ms ease;
+  white-space: nowrap;
+  transition: transform 140ms cubic-bezier(0.22, 1, 0.36, 1), border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .mvl-fb-floating-pill:hover {
   transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.mvl-fb-floating-pill:active {
-  transform: scale(0.96);
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 22px -4px rgba(15, 23, 42, 0.16);
 }
 
 .mvl-fb-pill-icon {
   display: inline-flex;
   align-items: center;
-  color: var(--snap-text);
+  justify-content: center;
+  color: #0f172a;
 }
 
 .mvl-fb-pill-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
-  background: var(--snap-qa);
+  border-radius: 999px;
+  background: #2563eb;
+  flex-shrink: 0;
 }
 
-.mvl-fb-pill-dot.dev {
-  background: var(--snap-dev);
+.mvl-fb-pill-dot.qa {
+  background: #10b981;
 }
 
-/* Crop Overlay */
+.mvl-fb-pill-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* Fullscreen Crosshair Overlay */
 .mvl-fb-overlay {
   position: fixed;
   inset: 0;
-  z-index: 2147483642;
+  z-index: 2147483641;
   cursor: crosshair;
-  background: rgba(9, 10, 13, 0.24);
+  background: rgba(15, 23, 42, 0.14);
   user-select: none;
 }
 
-/* Minimal Top Bar during Crop (No Mode Switcher) */
+/* Minimal Bright Top HUD Bar */
 .mvl-fb-top-bar {
   position: fixed;
-  top: 16px;
+  top: 14px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2147483645;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--snap-bg);
-  backdrop-filter: blur(16px);
-  color: var(--snap-text);
-  padding: 5px 7px 5px 12px;
+  padding: 5px 8px 5px 12px;
   border-radius: 999px;
-  border: 1px solid var(--snap-border-strong);
-  box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.7);
-  font-family: var(--snap-sans);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
   font-size: 11.5px;
+  font-weight: 500;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
   white-space: nowrap;
 }
 
@@ -107,408 +106,601 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--snap-text);
-  font-weight: 500;
-  padding-right: 6px;
+  color: #334155;
+  font-weight: 600;
+  padding-right: 4px;
+  white-space: nowrap;
 }
 
 .mvl-fb-top-bar button {
+  appearance: none;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.07);
-  color: var(--snap-muted);
-  border: none;
-  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
   padding: 4px 9px;
-  font-family: var(--snap-sans);
+  border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
 }
 
 .mvl-fb-top-bar button:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.12);
+  color: #0f172a;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
-/* Selection Region Box */
+/* Crop Selection Box */
 .mvl-fb-selection-box {
   position: fixed;
-  z-index: 2147483643;
-  border: 1.5px solid #3b82f6;
-  background: rgba(59, 130, 246, 0.05);
-  box-shadow: 0 0 0 9999px rgba(9, 10, 13, 0.45);
-  border-radius: 5px;
+  z-index: 2147483642;
+  border: 1.5px solid #2563eb;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.06);
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.28);
   pointer-events: none;
 }
 
 .mvl-fb-selection-dims {
   position: absolute;
-  bottom: -24px;
   right: 0;
-  background: #121316;
-  color: #e4e4e7;
-  border: 1px solid var(--snap-border-strong);
+  bottom: -24px;
+  padding: 2px 7px;
   border-radius: 4px;
-  padding: 2px 6px;
-  font-family: var(--snap-mono);
+  background: #0f172a;
+  color: #ffffff;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 10px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 /* ==========================================================================
-   Clean, Compact Inline Feedback Popover (368px)
+   Ultra-Compact Bright Comment Popover (332px) with Multi-Crop Filmstrip
    ========================================================================== */
 .mvl-fb-popover {
   position: fixed;
   z-index: 2147483646;
-  width: 368px;
-  max-width: calc(100vw - 24px);
-  background: var(--snap-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  color: var(--snap-text);
-  border: 1px solid var(--snap-border-strong);
+  width: 332px;
+  background: #ffffff;
+  color: #0f172a;
   border-radius: 12px;
-  box-shadow: 0 24px 54px -12px rgba(0, 0, 0, 0.8);
-  padding: 12px;
-  font-family: var(--snap-sans);
-  font-size: 12px;
-  transition: opacity 160ms var(--snap-ease), transform 160ms var(--snap-ease);
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 18px 38px -10px rgba(15, 23, 42, 0.16),
+    0 4px 12px -2px rgba(15, 23, 42, 0.06);
+  padding: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Plus Jakarta Sans", sans-serif;
+  box-sizing: border-box;
+  animation: mvlPopoverIn 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
 
-  @starting-style {
+@keyframes mvlPopoverIn {
+  from {
     opacity: 0;
-    transform: scale(0.97) translateY(4px);
+    transform: translateY(4px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-.mvl-fb-popover-header {
+.mvl-fb-popover * {
+  box-sizing: border-box;
+}
+
+/* Top Bar: Multi-Crop Filmstrip + Actions */
+.mvl-fb-compact-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 9px;
-}
-
-.mvl-fb-header-left {
-  display: inline-flex;
-  align-items: center;
   gap: 6px;
+  padding-bottom: 7px;
+  margin-bottom: 7px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.mvl-fb-mode-tag {
-  display: inline-flex;
+.mvl-fb-filmstrip {
+  display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
+  overflow-x: auto;
+  max-width: 246px;
+  padding-bottom: 1px;
+  scrollbar-width: none;
+}
+
+.mvl-fb-filmstrip::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hero Crop Stage Checkerboard (Daylight Transparency Pattern) */
+.mvl-fb-crop-stage,
+.mvl-fb-film-item {
+  position: relative;
+  width: 44px;
+  height: 30px;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #f1f5f9;
+  background-image: conic-gradient(
+    #f8fafc 90deg,
+    #ffffff 90deg 180deg,
+    #f8fafc 180deg 270deg,
+    #ffffff 270deg
+  );
+  background-size: 12px 12px;
+  border: 1.5px solid #e2e8f0;
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.mvl-fb-film-item.active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.16);
+}
+
+.mvl-fb-film-item.active.qa {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.18);
+}
+
+.mvl-fb-film-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mvl-fb-film-idx {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  min-width: 13px;
+  height: 13px;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: rgba(15, 23, 42, 0.78);
   color: #ffffff;
-  white-space: nowrap;
-}
-
-.mvl-fb-mode-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--snap-qa);
-}
-
-.mvl-fb-mode-dot.dev {
-  background: var(--snap-dev);
-}
-
-.mvl-fb-header-right {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 8.5px;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+}
+
+.mvl-fb-film-del {
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  background: rgba(225, 29, 72, 0.9);
+  color: #ffffff;
+  border: none;
+  font-size: 9px;
+  line-height: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.mvl-fb-film-item:hover .mvl-fb-film-del {
+  display: inline-flex;
+}
+
+.mvl-fb-film-add {
+  appearance: none;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 10.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.mvl-fb-film-add:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.mvl-fb-head-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .mvl-fb-env-badge {
-  font-family: var(--snap-mono);
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 9px;
   font-weight: 700;
-  padding: 2px 6px;
+  padding: 2px 5px;
   border-radius: 4px;
-  background: rgba(245, 158, 11, 0.14);
-  color: #fbbf24;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
   cursor: pointer;
-  user-select: none;
   white-space: nowrap;
 }
 
 .mvl-fb-env-badge.PROD {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  background: #fff1f2;
+  color: #e11d48;
+  border-color: #fecdd3;
 }
 
 .mvl-fb-env-badge.LOCAL {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
 }
 
 .mvl-fb-icon-close {
-  background: transparent;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
   border: none;
-  color: var(--snap-dim);
-  cursor: pointer;
-  padding: 2px;
+  background: transparent;
+  color: #94a3b8;
   display: inline-flex;
   align-items: center;
-  border-radius: 4px;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: color 120ms ease, background-color 120ms ease, transform 120ms ease;
 }
 
 .mvl-fb-icon-close:hover {
-  color: var(--snap-text);
+  color: #0f172a;
+  background: #f1f5f9;
 }
 
-/* Compact Preview Stage */
-.mvl-fb-crop-card {
-  background: var(--snap-input);
-  border: 1px solid var(--snap-border);
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 9px;
-}
-
-.mvl-fb-crop-stage {
-  position: relative;
-  height: 96px;
-  background-color: #090a0d;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 12px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.mvl-fb-preview-thumb {
-  max-width: 96%;
-  max-height: 88px;
-  object-fit: contain;
-  border-radius: 4px;
-}
-
-.mvl-fb-crop-dim-tag {
-  position: absolute;
-  right: 6px;
-  bottom: 5px;
-  background: rgba(16, 17, 20, 0.88);
-  color: var(--snap-muted);
-  border: 1px solid var(--snap-border);
-  border-radius: 4px;
-  padding: 1.5px 5px;
-  font-family: var(--snap-mono);
-  font-size: 9px;
-  font-variant-numeric: tabular-nums;
-}
-
-.mvl-fb-meta-strip {
-  padding: 5px 8px;
-  border-top: 1px solid var(--snap-border);
+/* Active Crop Sub-Bar: Selector + Dimensions + Add Note */
+.mvl-fb-submeta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  background: var(--snap-card);
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
-.mvl-fb-meta-path {
-  font-family: var(--snap-mono);
-  font-size: 10px;
-  color: var(--snap-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.mvl-fb-submeta-left {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
 }
 
 .mvl-fb-meta-selector {
-  font-family: var(--snap-mono);
-  font-size: 9.5px;
-  color: #60a5fa;
-  background: rgba(59, 130, 246, 0.12);
-  padding: 1px 5px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: #334155;
+  background: #f1f5f9;
+  padding: 1.5px 5px;
   border-radius: 4px;
   white-space: nowrap;
-  max-width: 145px;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 175px;
+}
+
+.mvl-fb-dim-pill {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
-/* QA Project & Module Selectors */
-.mvl-fb-qa-selectors {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.mvl-fb-field select {
-  width: 100%;
-  background: var(--snap-input);
-  color: var(--snap-text);
-  border: 1px solid var(--snap-border);
-  border-radius: 6px;
-  padding: 5.5px 7px;
-  font-family: var(--snap-sans);
-  font-size: 11px;
-  font-weight: 500;
-  outline: none;
-  cursor: pointer;
-}
-
-/* Priority Pills (QA Mode) */
-.mvl-fb-priority-bar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  margin-bottom: 8px;
-}
-
-.mvl-fb-prio-btn {
-  background: var(--snap-input);
-  color: var(--snap-dim);
-  border: 1px solid var(--snap-border);
-  border-radius: 5px;
-  padding: 4px;
-  font-family: var(--snap-sans);
-  font-size: 10px;
+.mvl-fb-add-note-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-size: 10.5px;
   font-weight: 600;
   cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 4px;
+  white-space: nowrap;
 }
 
-.mvl-fb-prio-btn:hover {
-  color: var(--snap-text);
+.mvl-fb-add-note-btn:hover {
+  background: #eff6ff;
 }
 
-.mvl-fb-prio-btn.active {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border-color: rgba(16, 185, 129, 0.45);
+/* Queued Multi-Comment Chips List */
+.mvl-fb-batch-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 6px;
+  max-height: 76px;
+  overflow-y: auto;
 }
 
-/* Comment Box */
+.mvl-fb-note-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 3.5px 7px;
+  border-radius: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  font-size: 10.5px;
+  color: #334155;
+  cursor: pointer;
+}
+
+.mvl-fb-note-chip.active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e3a8a;
+}
+
+.mvl-fb-note-chip-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* Comment Textarea */
 .mvl-fb-textarea-wrap {
   position: relative;
-  margin-bottom: 9px;
+  margin-bottom: 7px;
 }
 
 .mvl-fb-textarea {
   width: 100%;
-  min-height: 68px;
-  box-sizing: border-box;
-  background: var(--snap-input);
-  color: var(--snap-text);
-  border: 1px solid var(--snap-border);
-  border-radius: 7px;
-  padding: 8px 9px 20px 9px;
-  font-family: var(--snap-sans);
+  min-height: 54px;
+  max-height: 110px;
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 7px 9px 18px;
+  font-family: inherit;
   font-size: 12px;
   line-height: 1.4;
   resize: vertical;
   outline: none;
+  transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
 }
 
 .mvl-fb-textarea::placeholder {
-  color: var(--snap-dim);
+  color: #94a3b8;
 }
 
 .mvl-fb-textarea:focus {
-  border-color: rgba(255, 255, 255, 0.28);
+  background: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
 }
 
 .mvl-fb-kbd-hint {
   position: absolute;
-  right: 8px;
+  right: 7px;
   bottom: 5px;
-  font-family: var(--snap-mono);
-  font-size: 9px;
-  color: var(--snap-dim);
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9.5px;
+  color: #94a3b8;
   pointer-events: none;
 }
 
-/* Footer */
+/* Single-Row Compact QA Selectors (Project | Module | Priority) */
+.mvl-fb-qa-row {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 0.85fr;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.mvl-fb-qa-row select {
+  width: 100%;
+  height: 26px;
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0 6px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mvl-fb-qa-row select:focus {
+  border-color: #3b82f6;
+  background: #ffffff;
+}
+
+/* Compact Footer */
 .mvl-fb-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.mvl-fb-pat-badge {
-  font-size: 10.5px;
-  color: var(--snap-dim);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 160px;
-}
-
-.mvl-fb-btn-group {
-  display: inline-flex;
-  align-items: center;
   gap: 6px;
 }
 
-.mvl-fb-btn-cancel {
-  background: transparent;
-  color: var(--snap-muted);
-  border: 1px solid var(--snap-border);
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-family: var(--snap-sans);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.mvl-fb-btn-submit {
+.mvl-fb-mode-indicator {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: var(--snap-dev);
-  color: #ffffff;
-  border: none;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mvl-fb-mode-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #2563eb;
+  flex-shrink: 0;
+}
+
+.mvl-fb-mode-dot.qa {
+  background: #10b981;
+}
+
+.mvl-fb-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.mvl-fb-btn-cancel {
+  appearance: none;
+  height: 27px;
+  padding: 0 9px;
   border-radius: 6px;
-  padding: 6.5px 12px;
-  font-family: var(--snap-sans);
-  font-size: 11.5px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.mvl-fb-btn-cancel:hover {
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.mvl-fb-btn-submit {
+  appearance: none;
+  height: 27px;
+  padding: 0 11px;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.22);
+  transition: filter 120ms ease, transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
 }
 
 .mvl-fb-btn-submit.qa {
-  background: var(--snap-qa);
+  background: #10b981;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.22);
+}
+
+.mvl-fb-btn-submit:hover {
+  filter: brightness(1.04);
+  transform: translateY(-0.5px);
 }
 
 .mvl-fb-btn-submit:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: wait;
+  transform: none;
 }
 
-/* Toast */
+/* Tactile Press Feedback */
+.mvl-fb-floating-pill:active,
+.mvl-fb-top-bar button:active,
+.mvl-fb-film-add:active,
+.mvl-fb-film-item:active,
+.mvl-fb-icon-close:active,
+.mvl-fb-add-note-btn:active,
+.mvl-fb-prio-btn:active,
+.mvl-fb-btn-cancel:active,
+.mvl-fb-btn-submit:active {
+  transform: scale(0.96);
+}
+
+/* Focus Visibility */
+.mvl-fb-floating-pill:focus-visible,
+.mvl-fb-top-bar button:focus-visible,
+.mvl-fb-film-add:focus-visible,
+.mvl-fb-film-item:focus-visible,
+.mvl-fb-icon-close:focus-visible,
+.mvl-fb-textarea:focus-visible,
+.mvl-fb-qa-row select:focus-visible,
+.mvl-fb-btn-cancel:focus-visible,
+.mvl-fb-btn-submit:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    transform: none !important;
+  }
+}
+
+/* Bright Toast Notification */
 .mvl-fb-toast {
   position: fixed;
-  bottom: 62px;
-  right: 18px;
+  right: 16px;
+  bottom: 56px;
   z-index: 2147483647;
-  background: var(--snap-bg);
-  backdrop-filter: blur(16px);
-  color: var(--snap-text);
-  border: 1px solid var(--snap-border-strong);
-  border-radius: 9px;
-  padding: 10px 13px;
-  font-family: var(--snap-sans);
-  font-size: 12px;
-  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.75);
-  max-width: 340px;
+  max-width: 320px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  font-size: 11.5px;
+  line-height: 1.4;
+  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.15);
 }
 
 .mvl-fb-toast a {
-  color: #34d399;
+  color: #2563eb;
   font-weight: 600;
-  text-decoration: underline;
+  text-decoration: none;
 }
