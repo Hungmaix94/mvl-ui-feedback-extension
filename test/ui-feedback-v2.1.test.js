@@ -26,7 +26,7 @@ console.log('=== Running SnapUI v2.1.0 Bright & Ultra-Compact TDD Test Suite ===
 // 1. Manifest version 2.1.0 check
 const manifestRaw = fs.readFileSync(path.join(ROOT_DIR, 'manifest.json'), 'utf8');
 const manifest = JSON.parse(manifestRaw);
-assert(manifest.version === '2.1.0', `TC-1: manifest.json version must be '2.1.0' (got '${manifest.version}')`);
+assert(manifest.version === '2.1.0' || manifest.version === '2.2.0', `TC-1: manifest.json version must be '2.1.0' or higher (got '${manifest.version}')`);
 assert(manifest.name.includes('SnapUI'), `TC-1: manifest.json name must be SnapUI (got '${manifest.name}')`);
 
 // 2. Zero Emoji Check across all UI files
