@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>MVL UI Feedback — Crop to Plane & AI MCP</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="brand-row">
+        <span class="brand-logo">✂️</span>
+        <div>
+          <h1>MVL UI Feedback</h1>
+          <p class="subtitle">Crop Screenshot • Plane Task • Cloudflare MCP</p>
+        </div>
+      </div>
+      <span id="mcp-status-badge" class="status-badge online">MCP Online</span>
+    </header>
+
+    <!-- Role / Mode Switcher (DEV vs QA) -->
+    <section class="mode-section">
+      <div class="section-label">CHẾ ĐỘ LÀM VIỆC (ROLE MODE)</div>
+      <div class="mode-toggle-grid">
+        <button type="button" id="btn-mode-dev" class="mode-card">
+          <div class="mode-title">👨‍💻 DEV Mode</div>
+          <div class="mode-desc">Bắn thẳng vào MCP cho AI sửa code (Không tạo task Plane)</div>
+        </button>
+        <button type="button" id="btn-mode-qa" class="mode-card active-qa">
+          <div class="mode-title">🕵️‍♀️ QA Mode</div>
+          <div class="mode-desc">Tạo Task lên Plane bằng PAT + Lưu ngữ cảnh vào MCP</div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Primary Capture Actions -->
+    <section class="capture-actions">
+      <button type="button" id="btn-start-crop" class="btn-primary">
+        ✂️ Chụp Ảnh Crop & Comment (Mặc định)
+      </button>
+      <button type="button" id="btn-start-video" class="btn-secondary" title="Quay clip thao tác màn hình">
+        🎥 Video
+      </button>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-nav">
+      <button type="button" class="tab-btn active" data-tab="tab-project">🎯 Project / Module</button>
+      <button type="button" class="tab-btn" data-tab="tab-plane">🔑 Plane PAT & MCP</button>
+      <button type="button" class="tab-btn" data-tab="tab-history">🕒 Lịch sử</button>
+    </nav>
+
+    <!-- TAB 1: Project / Module Auto-Detect & List Project Config -->
+    <main id="tab-project" class="tab-panel active">
+      <div class="detected-card">
+        <div class="detected-header">
+          <span>🧭 Nhận diện tự động từ Tab hiện tại</span>
+          <span id="detected-env-pill" class="env-pill DEV-ONL">DEV-ONL</span>
+        </div>
+        <div id="detected-url-text" class="detected-url">Đang kiểm tra URL...</div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="select-default-project">Project (Chọn lại nếu cần)</label>
+            <select id="select-default-project"></select>
+          </div>
+          <div class="form-group">
+            <label for="select-default-module">Module / Phân hệ</label>
+            <select id="select-default-module"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="list-project-box">
+        <div class="box-header">
+          <span>📋 Cấu hình List Project hiển thị</span>
+          <button type="button" id="btn-select-all-projects" class="btn-link">Chọn tất cả</button>
+        </div>
+        <div id="project-checklist" class="project-checklist"></div>
+      </div>
+    </main>
+
+    <!-- TAB 2: Plane PAT & Cloudflare Remote MCP Config -->
+    <main id="tab-plane" class="tab-panel">
+      <div class="account-banner" id="plane-account-banner">
+        <div class="account-avatar">👤</div>
+        <div class="account-info">
+          <div id="account-name-text" class="account-name">Pham Hung (hung.phamduc)</div>
+          <div id="account-email-text" class="account-email">hung.phamduc@glinteco.com • Mặc định đã gắn</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="input-plane-pat">Plane Personal Access Token (PAT)</label>
+        <input
+          type="password"
+          id="input-plane-pat"
+          placeholder="plane_api_..."
+          autocomplete="off"
+        />
+        <small class="hint-text">Mặc định lấy PAT của account đã gắn trước đó. Có thể nhập PAT riêng của từng QA.</small>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="input-plane-host">Plane Host URL</label>
+          <input type="text" id="input-plane-host" value="https://pm.glinteco.com" />
+        </div>
+        <div class="form-group">
+          <label for="input-plane-workspace">Workspace Slug</label>
+          <input type="text" id="input-plane-workspace" value="glinteco" />
+        </div>
+      </div>
+
+      <button type="button" id="btn-sync-plane" class="btn-sync">
+        🔄 Lưu PAT & Đồng bộ Projects / Modules từ Plane
+      </button>
+
+      <hr class="divider" />
+
+      <div class="form-group">
+        <label for="input-mcp-url">☁️ Cloudflare Remote MCP Server (Free Tier)</label>
+        <div class="copy-row">
+          <input
+            type="text"
+            id="input-mcp-url"
+            readonly
+            value="https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp"
+          />
+          <button type="button" id="btn-copy-mcp" class="btn-copy">Copy JSON</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 3: Recent Feedbacks History -->
+    <main id="tab-history" class="tab-panel">
+      <div class="box-header">
+        <span>Danh sách Feedback gần nhất (D1 + Plane)</span>
+        <button type="button" id="btn-refresh-history" class="btn-link">🔄 Làm mới</button>
+      </div>
+      <div id="history-list" class="history-list">
+        <div class="empty-state">Đang tải lịch sử...</div>
+      </div>
+    </main>
+
+    <footer class="popup-footer">
+      <label class="checkbox-inline">
+        <input type="checkbox" id="chk-floating-pill" checked />
+        <span>Hiện nút nổi ✂️ UI Feedback ở góc phải trang web</span>
+      </label>
+      <span id="status-msg" class="status-msg"></span>
+    </footer>
+  </div>
+
+  <script src="default-config.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
