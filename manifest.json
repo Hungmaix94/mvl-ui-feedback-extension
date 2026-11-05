@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "MVL UI Feedback v2.0 — Universal FE/QA Telemetry & Inspector",
-  "version": "2.0.0",
-  "description": "Khoanh vùng trực quan, inspect DOM telemetry, tạo Task Plane (QA) hoặc đồng bộ AI Coding Agent qua Cloudflare Remote MCP (FE/DEV).",
+  "name": "SnapUI — Visual Feedback for QA & FE",
+  "version": "2.1.0",
+  "description": "Ultra-compact visual feedback tool for QA (Plane issues) and Frontend Developers (AI Remote MCP).",
   "permissions": [
     "activeTab",
     "tabs",
@@ -16,7 +16,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "MVL UI Feedback v2.0 (DEV MCP / QA Plane)",
+    "default_title": "SnapUI (QA Plane / FE MCP)",
     "default_popup": "popup.html"
   },
   "commands": {
@@ -25,7 +25,7 @@
         "default": "Alt+Shift+C",
         "mac": "Alt+Shift+C"
       },
-      "description": "Bắt đầu khoanh vùng chụp ảnh Crop & Comment"
+      "description": "Start visual crop & feedback"
     }
   },
   "content_scripts": [
