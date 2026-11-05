@@ -833,3 +833,144 @@
   font-weight: 600;
   text-decoration: none;
 }
+
+/* ==========================================================================
+   On-Page Visual Comment Pins, Bounding Boxes & Callout Bubbles (v2.3)
+   ========================================================================== */
+.mvl-fb-pins-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483643;
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Plus Jakarta Sans", sans-serif;
+}
+
+.mvl-fb-pin-box {
+  position: fixed;
+  border-radius: 8px;
+  border: 1.5px dashed rgba(37, 99, 235, 0.75);
+  background: rgba(37, 99, 235, 0.05);
+  pointer-events: none;
+  transition: border-color 140ms, background-color 140ms, box-shadow 140ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mvl-fb-pin-box.qa {
+  border-color: rgba(16, 185, 129, 0.8);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.mvl-fb-pin-box.active {
+  border-style: solid;
+  border-width: 2px;
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.09);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18), 0 8px 20px -4px rgba(37, 99, 235, 0.16);
+}
+
+.mvl-fb-pin-box.qa.active {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.09);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2), 0 8px 20px -4px rgba(16, 185, 129, 0.16);
+}
+
+.mvl-fb-pin-box.submitted {
+  border-style: solid;
+  border-width: 1.5px;
+  border-color: rgba(16, 185, 129, 0.65);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.mvl-fb-pin-header {
+  position: absolute;
+  top: -13px;
+  left: -8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.mvl-fb-pin-badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.22);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.mvl-fb-pin-box.qa .mvl-fb-pin-badge {
+  background: #10b981;
+}
+
+.mvl-fb-pin-box.active .mvl-fb-pin-badge {
+  transform: scale(1.08);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.28);
+}
+
+.mvl-fb-pin-bubble {
+  max-width: 240px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.mvl-fb-pin-box.active .mvl-fb-pin-bubble {
+  border-color: #2563eb;
+  background: #ffffff;
+}
+
+.mvl-fb-pin-box.qa.active .mvl-fb-pin-bubble {
+  border-color: #10b981;
+}
+
+.mvl-fb-pin-bubble em {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.mvl-fb-pill-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.mvl-fb-pill-clear:hover {
+  background: #fee2e2;
+  color: #e11d48;
+}
+

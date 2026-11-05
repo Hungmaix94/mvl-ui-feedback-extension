@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "SnapUI — Visual Feedback for QA & FE",
-  "version": "2.2.0",
-  "description": "Ultra-compact visual feedback tool for QA (Plane issues) and Frontend Developers (AI Remote MCP) with multi-crop batching.",
+  "version": "2.3.0",
+  "description": "Ultra-compact visual feedback tool for QA (Plane issues via AI Slackbot) and Frontend Developers (AI Remote MCP) with on-page visual comment pins and multi-crop batching.",
   "permissions": [
     "activeTab",
     "tabs",
