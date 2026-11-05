@@ -79,13 +79,13 @@
 
   function renderModeButtons() {
     const isQa = (config.mode || "qa") === "qa";
-    btnModeDev.className = `mode-card ${!isQa ? "active-dev" : ""}`;
-    btnModeQa.className = `mode-card ${isQa ? "active-qa" : ""}`;
+    btnModeDev.className = `role-pill ${!isQa ? "active" : ""}`;
+    btnModeQa.className = `role-pill ${isQa ? "active" : ""}`;
     btnStartCrop.className = `btn-capture-primary ${isQa ? "qa" : ""}`;
     if (btnStartCropLabel) {
       btnStartCropLabel.textContent = isQa
-        ? "Kính ngắm Crop → Tạo Task Plane"
-        : "Kính ngắm Crop → Đẩy vào MCP";
+        ? "Crop & Create Issue"
+        : "Crop & Send to MCP";
     }
   }
 

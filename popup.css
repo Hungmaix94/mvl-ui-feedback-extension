@@ -1,36 +1,27 @@
 /**
- * MVL Rangefinder — Extension Popup Styles (v1.2.0 — frontend-design + baoyu-design Edition)
- * Studio Direction: Leica M-System Optical Rangefinder & Architectural Vernier Telemetry
- * Token System (6 Named Hex Values):
- * - --optic-chassis:   #111214 (Anodized matte magnesium body)
- * - --optic-well:      #0A0B0D (Recessed optical chamber / darkroom stage)
- * - --optic-surface:   #17191C (Tactile switch plate)
- * - --optic-rule:      #272A30 (1px engraved micrometer rule)
- * - --shutter-crimson: #E12D39 (MVL Architectural Crimson / Rangefinder shutter release)
- * - --telemetry-amber: #F59E0B (Vernier reticle coordinates & environment indicator)
+ * SnapUI — Clean, Minimal Visual Feedback Extension for FE & QA (v2.0.0)
+ * Design Principles:
+ * - Zero verbose description text; crisp scannable controls
+ * - One-time Role Switch (QA | DEV) tucked cleanly in the header
+ * - Neutral Zinc Dark palette (#121316 surface, #27272A hairline, #2563EB Dev Blue, #10B981 QA Emerald)
  */
 
 :root,
 :host,
 .popup-shell {
-  --optic-chassis: #111214;
-  --optic-well: #0a0b0d;
-  --optic-surface: #17191c;
-  --optic-surface-hover: #1e2126;
-  --optic-rule: #272a30;
-  --optic-rule-strong: #383d47;
-  --shutter-crimson: #e12d39;
-  --shutter-crimson-dark: #b91c28;
-  --telemetry-amber: #f59e0b;
-  --telemetry-cyan: #38bdf8;
-  --telemetry-emerald: #10b981;
-  --text-primary: #f4f5f7;
-  --text-secondary: #a0a6b2;
-  --text-muted: #68707e;
-  --font-display: "Instrument Serif", "Playfair Display", Georgia, serif;
-  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, monospace;
-  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --bg-base: #121316;
+  --bg-card: #18191d;
+  --bg-input: #101114;
+  --border-subtle: #26282e;
+  --border-focus: #3f434e;
+  --text-primary: #f4f4f6;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --accent-qa: #10b981;
+  --accent-dev: #3b82f6;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Plus Jakarta Sans", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * {
@@ -41,11 +32,8 @@
 
 body,
 .popup-shell {
-  width: 428px;
-  background-color: var(--optic-chassis);
-  background-image:
-    radial-gradient(110% 60% at 15% 0%, rgba(225, 45, 57, 0.08), transparent 60%),
-    linear-gradient(180deg, #141619 0%, #0f1012 100%);
+  width: 356px;
+  background: var(--bg-base);
   color: var(--text-primary);
   font-family: var(--font-sans);
   font-size: 12px;
@@ -55,263 +43,93 @@ body,
 }
 
 .popup-shell {
-  padding: 14px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 11px;
-  border: 1px solid var(--optic-rule);
+  gap: 10px;
 }
 
-/* Header: Optical Atelier Plate */
+/* Header with One-Time QA/DEV Switch */
 .popup-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--optic-rule);
 }
 
 .brand-group {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .brand-icon {
-  width: 34px;
-  height: 34px;
+  width: 26px;
+  height: 26px;
   border-radius: 7px;
-  background: var(--optic-well);
-  border: 1px solid var(--shutter-crimson);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 14px rgba(225, 45, 57, 0.22);
+  background: #1f2127;
+  border: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--shutter-crimson);
+  color: var(--text-primary);
 }
 
-.brand-title-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.popup-header h1 {
-  font-family: var(--font-display);
-  font-size: 16.5px;
+.brand-name {
+  font-size: 13.5px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   color: #ffffff;
-  white-space: nowrap;
 }
 
-.version-tag {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  padding: 1.5px 5.5px;
-  border-radius: 3px;
-  background: var(--optic-well);
-  color: var(--telemetry-amber);
-  border: 1px solid var(--optic-rule);
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-}
-
-.subtitle {
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  color: var(--text-muted);
-  letter-spacing: 0.03em;
-  margin-top: 1px;
-  white-space: nowrap;
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: var(--optic-well);
-  color: var(--telemetry-emerald);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.status-dot {
+.status-dot-Only {
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: var(--telemetry-emerald);
-  box-shadow: 0 0 8px var(--telemetry-emerald);
+  background: var(--accent-qa);
+  box-shadow: 0 0 6px var(--accent-qa);
 }
 
-/* Signature Element: Engraved Vernier Scale & Dual-Channel Mode Deck */
-.mode-section {
-  background: var(--optic-well);
-  border: 1px solid var(--optic-rule);
-  border-radius: 8px;
-  padding: 8px 10px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.vernier-scale-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 5px;
-  border-bottom: 1px dashed #202329;
-}
-
-.vernier-ticks {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--text-muted);
-  letter-spacing: 0.02em;
-}
-
-.shortcut-hint {
+/* Compact One-Time Role Switcher */
+.role-pill-switch {
   display: inline-flex;
-  align-items: center;
-  gap: 3px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+  padding: 2px;
+  gap: 2px;
 }
 
-.shortcut-hint kbd {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  padding: 1px 4.5px;
-  border-radius: 3px;
-  background: var(--optic-surface);
-  color: var(--telemetry-amber);
-  border: 1px solid var(--optic-rule);
-}
-
-.mode-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.mode-card {
-  position: relative;
-  text-align: left;
-  background: var(--optic-surface);
-  color: var(--text-secondary);
-  border: 1px solid var(--optic-rule);
-  border-radius: 6px;
-  padding: 8px 10px;
+.role-pill {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 5px;
   cursor: pointer;
-  transition:
-    transform 140ms var(--ease-out-expo),
-    background-color 150ms ease,
-    border-color 150ms ease;
+  transition: background-color 140ms ease, color 140ms ease;
 }
 
-.mode-card:hover {
-  background: var(--optic-surface-hover);
-  border-color: var(--optic-rule-strong);
-}
-
-.mode-card:active {
-  transform: scale(0.97);
-}
-
-.mode-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 3px;
-}
-
-.mode-channel {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
-}
-
-.mode-indicator {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #272a30;
-  transition: background-color 150ms ease, box-shadow 150ms ease;
-}
-
-.mode-name-row {
-  margin-bottom: 3px;
-}
-
-.mode-name {
-  font-size: 12px;
-  font-weight: 700;
+.role-pill:hover {
   color: var(--text-primary);
-  letter-spacing: -0.01em;
 }
 
-.mode-desc {
-  font-size: 10px;
-  color: var(--text-muted);
-  line-height: 1.32;
+.role-pill.active#btn-mode-qa {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
 }
 
-/* Active QA Mode: Leica Rangefinder Crimson */
-.mode-card.active-qa {
-  background: linear-gradient(180deg, rgba(225, 45, 57, 0.14) 0%, rgba(23, 25, 28, 0.95) 100%);
-  border-color: var(--shutter-crimson);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+.role-pill.active#btn-mode-dev {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
 }
 
-.mode-card.active-qa .mode-channel {
-  color: #f87171;
-}
-
-.mode-card.active-qa .mode-indicator {
-  background: var(--shutter-crimson);
-  box-shadow: 0 0 8px var(--shutter-crimson);
-}
-
-.mode-card.active-qa .mode-desc {
-  color: #d1d5db;
-}
-
-/* Active DEV Mode: Telemetry Phosphor Cyan */
-.mode-card.active-dev {
-  background: linear-gradient(180deg, rgba(56, 189, 248, 0.14) 0%, rgba(23, 25, 28, 0.95) 100%);
-  border-color: var(--telemetry-cyan);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.mode-card.active-dev .mode-channel {
-  color: var(--telemetry-cyan);
-}
-
-.mode-card.active-dev .mode-indicator {
-  background: var(--telemetry-cyan);
-  box-shadow: 0 0 8px var(--telemetry-cyan);
-}
-
-.mode-card.active-dev .mode-desc {
-  color: #d1d5db;
-}
-
-/* Mechanical Shutter Capture Bar */
+/* Primary Capture CTA */
 .capture-bar {
   display: flex;
-  gap: 7px;
+  gap: 6px;
 }
 
 .btn-capture-primary {
@@ -319,114 +137,85 @@ body,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+  background: var(--accent-dev);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 7px;
-  padding: 9.5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8.5px 11px;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 6px 14px -4px rgba(2, 132, 199, 0.45);
-  transition: transform 140ms var(--ease-out-expo), filter 140ms ease;
+  transition: transform 120ms var(--ease), filter 120ms ease;
 }
 
 .btn-capture-primary.qa {
-  background: linear-gradient(180deg, var(--shutter-crimson) 0%, var(--shutter-crimson-dark) 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 6px 14px -4px rgba(225, 45, 57, 0.5);
+  background: var(--accent-qa);
 }
 
 .btn-capture-primary:hover {
-  filter: brightness(1.07);
+  filter: brightness(1.06);
 }
 
 .btn-capture-primary:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 .btn-capture-left {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-}
-
-.shutter-ring {
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  border: 2px solid #ffffff;
-  background: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+  gap: 7px;
+  white-space: nowrap;
 }
 
 .btn-kbd {
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 2px 6px;
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 1.5px 5px;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .btn-capture-video {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--optic-surface);
-  color: var(--text-primary);
-  border: 1px solid var(--optic-rule);
-  border-radius: 7px;
-  padding: 9px 11px;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 140ms var(--ease-out-expo), background-color 150ms ease, border-color 150ms ease;
-}
-
-.btn-capture-video:hover {
-  background: var(--optic-surface-hover);
-  border-color: var(--optic-rule-strong);
-}
-
-.btn-capture-video:active {
-  transform: scale(0.96);
-}
-
-/* Engraved Instrument Navigation Tabs */
-.segmented-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 3px;
-  background: var(--optic-well);
-  border: 1px solid var(--optic-rule);
-  padding: 3px;
-  border-radius: 6px;
-}
-
-.tab-btn {
+  width: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.btn-capture-video:hover {
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+}
+
+/* Segmented Tabs */
+.segmented-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  padding: 2.5px;
+  border-radius: 8px;
+}
+
+.tab-btn {
   background: transparent;
   color: var(--text-muted);
-  border: 1px solid transparent;
-  border-radius: 4px;
-  padding: 5.5px 6px;
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 6px;
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  transition: background-color 120ms ease, color 120ms ease;
 }
 
 .tab-btn:hover {
@@ -434,28 +223,27 @@ body,
 }
 
 .tab-btn.active {
-  background: var(--optic-surface);
+  background: var(--bg-card);
   color: #ffffff;
-  border-color: var(--optic-rule-strong);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .tab-panel {
   display: none;
   flex-direction: column;
-  gap: 9px;
+  gap: 8px;
 }
 
 .tab-panel.active {
   display: flex;
 }
 
-/* Surface Cards */
+/* Cards */
 .surface-card {
-  background: var(--optic-surface);
-  border: 1px solid var(--optic-rule);
-  border-radius: 8px;
-  padding: 10px 11px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  padding: 9px 10px;
 }
 
 .card-header {
@@ -466,79 +254,54 @@ body,
 }
 
 .card-title {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--text-secondary);
   white-space: nowrap;
 }
 
-.reticle-mark {
-  color: var(--shutter-crimson);
-  font-weight: 700;
-}
-
 .card-actions-inline {
   display: inline-flex;
+  gap: 4px;
+}
+
+.url-preview-bar {
+  display: flex;
   align-items: center;
-  gap: 5px;
-  flex-shrink: 0;
+  gap: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 5px 7px;
+  margin-bottom: 8px;
 }
 
 .env-pill {
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 700;
-  padding: 2px 6.5px;
+  padding: 1.5px 5px;
   border-radius: 4px;
   background: rgba(245, 158, 11, 0.14);
-  color: var(--telemetry-amber);
-  border: 1px solid rgba(245, 158, 11, 0.38);
+  color: #fbbf24;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .env-pill.PROD {
-  background: rgba(225, 45, 57, 0.16);
-  color: #fca5a5;
-  border-color: rgba(225, 45, 57, 0.45);
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
 }
 
 .env-pill.LOCAL {
-  background: rgba(56, 189, 248, 0.14);
-  color: var(--telemetry-cyan);
-  border-color: rgba(56, 189, 248, 0.38);
-}
-
-.url-preview-bar {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  background: var(--optic-well);
-  border: 1px solid var(--optic-rule);
-  border-radius: 5px;
-  padding: 5.5px 8px;
-  margin-bottom: 9px;
-}
-
-.url-prefix {
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  font-weight: 700;
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: #1e2229;
-  color: var(--telemetry-amber);
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
 }
 
 .detected-url {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--telemetry-cyan);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -548,13 +311,13 @@ body,
 .form-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 7px;
 }
 
 .field-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3.5px;
   margin-bottom: 7px;
 }
 
@@ -563,132 +326,113 @@ body,
 }
 
 .field-group label {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 10px;
+  font-weight: 600;
   color: var(--text-muted);
 }
 
 .field-group input,
 .field-group select,
-.add-project-drawer input {
+.add-project-drawer input,
+.mcp-readonly-input {
   width: 100%;
-  background: var(--optic-well);
+  background: var(--bg-input);
   color: var(--text-primary);
-  border: 1px solid var(--optic-rule);
-  border-radius: 5px;
-  padding: 6px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 5.5px 7.5px;
   font-size: 11px;
-  font-family: var(--font-sans);
+  font-family: inherit;
   outline: none;
-  transition: border-color 140ms ease;
+}
+
+.mcp-readonly-input {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
 }
 
 .field-group input:focus,
 .field-group select:focus,
 .add-project-drawer input:focus {
-  border-color: var(--telemetry-amber);
-}
-
-.field-hint {
-  font-size: 9.5px;
-  color: var(--text-muted);
-  line-height: 1.35;
+  border-color: var(--border-focus);
 }
 
 .btn-ghost-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--optic-well);
-  border: 1px solid var(--optic-rule);
-  border-radius: 4px;
-  padding: 2.5px 7px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  padding: 2px 6.5px;
   color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  transition: border-color 140ms ease, color 140ms ease;
 }
 
 .btn-ghost-link:hover {
-  border-color: var(--telemetry-amber);
-  color: var(--telemetry-amber);
+  color: var(--text-primary);
+  border-color: var(--border-focus);
 }
 
-/* Add Custom Project Drawer */
+/* Add Project Drawer */
 .add-project-drawer {
-  background: var(--optic-well);
-  border: 1px dashed var(--optic-rule-strong);
+  background: var(--bg-input);
+  border: 1px dashed var(--border-focus);
   border-radius: 6px;
-  padding: 8px;
-  margin-bottom: 8px;
+  padding: 7px;
+  margin-bottom: 7px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .add-proj-row-bottom {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 
 .btn-save-mini {
-  background: var(--shutter-crimson);
+  background: var(--accent-qa);
   color: #ffffff;
   border: none;
-  border-radius: 4px;
-  padding: 0 11px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
+  border-radius: 5px;
+  padding: 0 10px;
+  font-size: 10.5px;
+  font-weight: 600;
   cursor: pointer;
 }
 
-/* Interactive Project Filter Chips */
+/* Project Chips */
 .project-chip-grid {
-  max-height: 118px;
+  max-height: 116px;
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 5px;
-  padding-right: 2px;
 }
 
 .project-check-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
-  font-size: 10.5px;
-  color: var(--text-secondary);
-  background: var(--optic-well);
-  padding: 5px 8px;
-  border-radius: 5px;
-  border: 1px solid var(--optic-rule);
+  gap: 5px;
+  background: var(--bg-input);
+  padding: 4.5px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
   cursor: pointer;
-  transition: border-color 140ms ease, color 140ms ease;
-}
-
-.project-check-item:hover {
-  border-color: var(--optic-rule-strong);
-  color: var(--text-primary);
 }
 
 .project-check-item.checked {
-  background: rgba(225, 45, 57, 0.1);
-  border-color: rgba(225, 45, 57, 0.5);
-  color: #ffffff;
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.08);
 }
 
 .project-check-item input[type="checkbox"] {
-  accent-color: var(--shutter-crimson);
+  accent-color: var(--accent-qa);
   width: 12px;
   height: 12px;
-  cursor: pointer;
 }
 
 .project-code-label {
@@ -700,7 +444,7 @@ body,
 .project-code-label strong {
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .project-code-sub {
@@ -711,26 +455,23 @@ body,
   text-overflow: ellipsis;
 }
 
-/* Account Card (Tab 2) */
+/* Account Card */
 .account-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: var(--optic-well);
-  border: 1px solid var(--optic-rule);
-  border-left: 3px solid var(--telemetry-emerald);
-  border-radius: 6px;
-  padding: 9px 11px;
+  gap: 9px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  padding: 8px 10px;
 }
 
 .account-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 5px;
-  background: var(--optic-surface);
-  border: 1px solid var(--optic-rule-strong);
-  color: var(--telemetry-amber);
-  font-family: var(--font-mono);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.16);
+  color: #34d399;
   font-size: 11px;
   font-weight: 700;
   display: flex;
@@ -747,150 +488,76 @@ body,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
 }
 
 .account-name {
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: #ffffff;
 }
 
 .verified-tag {
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  font-weight: 700;
-  padding: 1.5px 6px;
-  border-radius: 3px;
-  background: rgba(16, 185, 129, 0.14);
-  color: var(--telemetry-emerald);
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
 }
 
 .account-email {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  color: var(--text-secondary);
+  font-size: 10px;
+  color: var(--text-muted);
 }
 
 .btn-sync-action {
-  margin-top: 8px;
+  margin-top: 7px;
   width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: var(--shutter-crimson);
+  background: #272a32;
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 5px;
-  padding: 7.5px 10px;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 700;
+  border: 1px solid var(--border-focus);
+  border-radius: 6px;
+  padding: 6.5px 10px;
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 140ms var(--ease-out-expo), filter 140ms ease;
 }
 
 .btn-sync-action:hover {
-  filter: brightness(1.08);
+  background: #30343e;
 }
 
-.btn-sync-action:active {
-  transform: scale(0.98);
-}
-
-.free-tier-tag {
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  font-weight: 700;
-  padding: 1.5px 6px;
-  border-radius: 3px;
-  background: var(--optic-well);
-  color: var(--telemetry-cyan);
-  border: 1px solid var(--optic-rule);
-}
-
-.copy-input-group {
-  display: flex;
-  gap: 6px;
-}
-
-.copy-input-group input {
-  flex: 1;
-  background: var(--optic-well);
-  color: var(--telemetry-cyan);
-  border: 1px solid var(--optic-rule);
-  border-radius: 5px;
-  padding: 6px 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  outline: none;
-}
-
-.btn-copy-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--optic-well);
-  color: var(--telemetry-amber);
-  border: 1px solid var(--optic-rule-strong);
-  border-radius: 5px;
-  padding: 0 10px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.btn-copy-chip:hover {
-  border-color: var(--telemetry-amber);
-}
-
-/* History Feed (Tab 3) */
+/* History Feed */
 .history-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.section-label {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
-}
-
 .history-feed {
-  max-height: 224px;
+  max-height: 215px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
 .history-item {
   display: flex;
-  gap: 9px;
-  background: var(--optic-surface);
-  border: 1px solid var(--optic-rule);
-  border-radius: 6px;
-  padding: 8px 9px;
-}
-
-.history-item:hover {
-  border-color: var(--optic-rule-strong);
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 7px 8px;
 }
 
 .history-thumb {
-  width: 48px;
-  height: 38px;
-  border-radius: 4px;
+  width: 44px;
+  height: 34px;
+  border-radius: 5px;
   object-fit: cover;
-  background: var(--optic-well);
-  border: 1px solid var(--optic-rule);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
   flex-shrink: 0;
 }
 
@@ -903,24 +570,19 @@ body,
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 6px;
   margin-bottom: 2px;
 }
 
 .history-id {
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 700;
-  color: var(--telemetry-cyan);
+  font-weight: 600;
+  color: #60a5fa;
 }
 
 .history-id a {
-  color: var(--telemetry-amber);
+  color: #34d399;
   text-decoration: none;
-}
-
-.history-id a:hover {
-  text-decoration: underline;
 }
 
 .history-comment {
@@ -929,38 +591,34 @@ body,
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 2px;
 }
 
 .history-meta {
-  font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 9.5px;
   color: var(--text-muted);
   display: flex;
-  align-items: center;
-  gap: 6px;
+  justify-content: space-between;
 }
 
 .history-meta a {
-  color: var(--telemetry-cyan);
+  color: #60a5fa;
   text-decoration: none;
 }
 
 .empty-state {
   text-align: center;
-  padding: 24px 12px;
+  padding: 20px 10px;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  background: var(--optic-well);
-  border: 1px dashed var(--optic-rule);
-  border-radius: 6px;
+  font-size: 11px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 8px;
 }
 
-/* Footer Toggle Switch */
+/* Footer */
 .popup-footer {
-  padding-top: 8px;
-  border-top: 1px solid var(--optic-rule);
+  padding-top: 7px;
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -969,7 +627,7 @@ body,
 .toggle-row {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   cursor: pointer;
 }
 
@@ -978,45 +636,41 @@ body,
 }
 
 .toggle-track {
-  width: 28px;
+  width: 26px;
   height: 15px;
-  border-radius: 3px;
-  background: var(--optic-well);
-  border: 1px solid var(--optic-rule-strong);
+  border-radius: 999px;
+  background: #27272a;
   position: relative;
-  transition: background-color 150ms ease, border-color 150ms ease;
+  transition: background-color 140ms ease;
 }
 
 .toggle-thumb {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  background: var(--text-secondary);
-  transition: transform 150ms var(--ease-out-expo), background-color 150ms ease;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #a1a1aa;
+  transition: transform 140ms var(--ease), background-color 140ms ease;
 }
 
 .toggle-row input:checked + .toggle-track {
-  background: rgba(225, 45, 57, 0.22);
-  border-color: var(--shutter-crimson);
+  background: rgba(16, 185, 129, 0.35);
 }
 
 .toggle-row input:checked + .toggle-track .toggle-thumb {
-  transform: translateX(13px);
-  background: var(--shutter-crimson);
+  transform: translateX(11px);
+  background: #34d399;
 }
 
 .toggle-label {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 10.5px;
   color: var(--text-secondary);
 }
 
 .status-toast {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 700;
-  color: var(--telemetry-emerald);
+  font-size: 10px;
+  font-weight: 600;
+  color: #34d399;
 }

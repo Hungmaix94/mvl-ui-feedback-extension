@@ -1,70 +1,53 @@
 /* ==========================================================================
-   MVL Rangefinder — Optical Viewport Loupe & Telemetry Inspector (v1.2.0)
-   Built with frontend-design (2-Pass Studio Process) + baoyu-design
-   Materiality: Matte Anodized Magnesium (#111214), Recessed Darkroom Stage (#0A0B0D),
-   Tungsten Micrometer Rules (#272A30), Leica Shutter Crimson (#E12D39),
-   Phosphor Telemetry Amber (#F59E0B) & Cyan (#38BDF8).
+   SnapUI — Clean, Minimal Visual Feedback Overlay & Popover for FE & QA (v2.0.0)
+   - Zero verbose text, zero mode-switcher clutter during capture
+   - Adapts automatically to the one-time QA / DEV role configured in Popup
    ========================================================================== */
 
 :root {
-  --mvl-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --mvl-optic-chassis: #111214;
-  --mvl-optic-well: #0a0b0d;
-  --mvl-optic-surface: #17191c;
-  --mvl-optic-rule: #272a30;
-  --mvl-optic-rule-strong: #383d47;
-  --mvl-shutter-crimson: #e12d39;
-  --mvl-telemetry-amber: #f59e0b;
-  --mvl-telemetry-cyan: #38bdf8;
-  --mvl-telemetry-emerald: #10b981;
-  --mvl-text-primary: #f4f5f7;
-  --mvl-text-secondary: #a0a6b2;
-  --mvl-text-muted: #68707e;
-  --mvl-font-display: "Instrument Serif", "Playfair Display", Georgia, serif;
-  --mvl-font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
-  --mvl-font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, monospace;
+  --snap-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --snap-bg: rgba(18, 19, 22, 0.96);
+  --snap-card: #18191d;
+  --snap-input: #101114;
+  --snap-border: rgba(255, 255, 255, 0.1);
+  --snap-border-strong: rgba(255, 255, 255, 0.18);
+  --snap-qa: #10b981;
+  --snap-dev: #3b82f6;
+  --snap-text: #f4f4f6;
+  --snap-muted: #9ca3af;
+  --snap-dim: #6b7280;
+  --snap-sans: -apple-system, BlinkMacSystemFont, "Inter", "Plus Jakarta Sans", sans-serif;
+  --snap-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
 }
 
-/* Floating Optical Trigger Pill (Bottom-Right) */
+/* Floating Trigger Button (Bottom-Right) */
 .mvl-fb-floating-pill {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
+  right: 18px;
+  bottom: 18px;
   z-index: 2147483640;
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  background: var(--mvl-optic-chassis);
-  color: var(--mvl-text-primary);
-  border: 1px solid var(--mvl-optic-rule-strong);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 14px 34px -6px rgba(0, 0, 0, 0.78),
-    0 0 0 1px rgba(0, 0, 0, 0.85);
-  border-radius: 7px;
-  padding: 7px 10px 7px 12px;
-  font-family: var(--mvl-font-sans);
+  gap: 7px;
+  background: var(--snap-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--snap-text);
+  border: 1px solid var(--snap-border-strong);
+  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.65);
+  border-radius: 999px;
+  padding: 6.5px 11px;
+  font-family: var(--snap-sans);
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 600;
   cursor: pointer;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    transform 150ms var(--mvl-ease-out),
-    border-color 150ms ease,
-    box-shadow 150ms ease;
+  transition: transform 140ms var(--snap-ease), border-color 140ms ease;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .mvl-fb-floating-pill:hover {
-    transform: translateY(-2px);
-    border-color: var(--mvl-shutter-crimson);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.14),
-      0 18px 38px -8px rgba(0, 0, 0, 0.85),
-      0 0 16px rgba(225, 45, 57, 0.25);
-  }
+.mvl-fb-floating-pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .mvl-fb-floating-pill:active {
@@ -74,91 +57,48 @@
 .mvl-fb-pill-icon {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  color: var(--mvl-shutter-crimson);
+  color: var(--snap-text);
 }
 
-.mvl-fb-pill-title {
-  font-family: var(--mvl-font-display);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: #ffffff;
-}
-
-.mvl-fb-pill-mode {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2.5px 7px;
-  border-radius: 4px;
-  font-family: var(--mvl-font-mono);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  font-variant-numeric: tabular-nums;
-}
-
-.mvl-fb-pill-mode::before {
-  content: "";
+.mvl-fb-pill-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
+  background: var(--snap-qa);
 }
 
-.mvl-fb-pill-mode.dev {
-  background: rgba(56, 189, 248, 0.14);
-  color: var(--mvl-telemetry-cyan);
-  border: 1px solid rgba(56, 189, 248, 0.4);
+.mvl-fb-pill-dot.dev {
+  background: var(--snap-dev);
 }
 
-.mvl-fb-pill-mode.dev::before {
-  background: var(--mvl-telemetry-cyan);
-  box-shadow: 0 0 8px var(--mvl-telemetry-cyan);
-}
-
-.mvl-fb-pill-mode.qa {
-  background: rgba(225, 45, 57, 0.16);
-  color: #fca5a5;
-  border: 1px solid rgba(225, 45, 57, 0.48);
-}
-
-.mvl-fb-pill-mode.qa::before {
-  background: var(--mvl-shutter-crimson);
-  box-shadow: 0 0 8px var(--mvl-shutter-crimson);
-}
-
-/* Crop Crosshair Canvas Overlay */
+/* Crop Overlay */
 .mvl-fb-overlay {
   position: fixed;
   inset: 0;
   z-index: 2147483642;
   cursor: crosshair;
-  background: rgba(8, 9, 12, 0.32);
+  background: rgba(9, 10, 13, 0.24);
   user-select: none;
 }
 
-/* Top HUD Rangefinder Bar during Capture */
+/* Minimal Top Bar during Crop (No Mode Switcher) */
 .mvl-fb-top-bar {
   position: fixed;
-  top: 18px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2147483645;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  background: var(--mvl-optic-chassis);
-  color: var(--mvl-text-primary);
-  padding: 6px 8px 6px 13px;
-  border-radius: 7px;
-  border: 1px solid var(--mvl-optic-rule-strong);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 20px 42px -10px rgba(0, 0, 0, 0.85);
-  font-family: var(--mvl-font-sans);
+  gap: 6px;
+  background: var(--snap-bg);
+  backdrop-filter: blur(16px);
+  color: var(--snap-text);
+  padding: 5px 7px 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--snap-border-strong);
+  box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.7);
+  font-family: var(--snap-sans);
   font-size: 11.5px;
   white-space: nowrap;
 }
@@ -166,110 +106,82 @@
 .mvl-fb-top-hint {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  color: var(--mvl-text-primary);
-  font-family: var(--mvl-font-mono);
-  font-size: 10.5px;
-  font-weight: 600;
-  padding-right: 8px;
-  border-right: 1px solid var(--mvl-optic-rule);
+  gap: 6px;
+  color: var(--snap-text);
+  font-weight: 500;
+  padding-right: 6px;
 }
 
 .mvl-fb-top-bar button {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  background: var(--mvl-optic-surface);
-  color: var(--mvl-text-secondary);
-  border: 1px solid var(--mvl-optic-rule);
-  border-radius: 5px;
-  padding: 4.5px 10px;
-  font-family: var(--mvl-font-mono);
-  font-size: 10px;
-  font-weight: 700;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--snap-muted);
+  border: none;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-family: var(--snap-sans);
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
-  transition:
-    transform 140ms var(--mvl-ease-out),
-    background-color 140ms ease,
-    border-color 140ms ease,
-    color 140ms ease;
 }
 
-.mvl-fb-top-bar button:active {
-  transform: scale(0.96);
+.mvl-fb-top-bar button:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
 }
 
-.mvl-fb-top-bar button.active {
-  background: rgba(56, 189, 248, 0.16);
-  color: var(--mvl-telemetry-cyan);
-  border-color: var(--mvl-telemetry-cyan);
-}
-
-.mvl-fb-top-bar button.qa-active {
-  background: rgba(225, 45, 57, 0.18);
-  color: #fca5a5;
-  border-color: var(--mvl-shutter-crimson);
-}
-
-/* Rangefinder Reticle Selection Box */
+/* Selection Region Box */
 .mvl-fb-selection-box {
   position: fixed;
   z-index: 2147483643;
-  border: 1.5px solid var(--mvl-shutter-crimson);
-  background: rgba(225, 45, 57, 0.05);
-  box-shadow:
-    0 0 0 9999px rgba(8, 9, 12, 0.54),
-    inset 0 0 0 1px rgba(245, 158, 11, 0.35);
-  border-radius: 3px;
+  border: 1.5px solid #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+  box-shadow: 0 0 0 9999px rgba(9, 10, 13, 0.45);
+  border-radius: 5px;
   pointer-events: none;
 }
 
 .mvl-fb-selection-dims {
   position: absolute;
-  bottom: -26px;
+  bottom: -24px;
   right: 0;
-  background: var(--mvl-optic-well);
-  color: var(--mvl-telemetry-amber);
-  border: 1px solid var(--mvl-optic-rule-strong);
+  background: #121316;
+  color: #e4e4e7;
+  border: 1px solid var(--snap-border-strong);
   border-radius: 4px;
-  padding: 2.5px 8px;
-  font-family: var(--mvl-font-mono);
+  padding: 2px 6px;
+  font-family: var(--snap-mono);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
 /* ==========================================================================
-   Optical Loupe Inline Inspector Popover (.mvl-fb-popover)
+   Clean, Compact Inline Feedback Popover (368px)
    ========================================================================== */
 .mvl-fb-popover {
   position: fixed;
   z-index: 2147483646;
-  width: 440px;
+  width: 368px;
   max-width: calc(100vw - 24px);
-  background: var(--mvl-optic-chassis);
-  color: var(--mvl-text-primary);
-  border: 1px solid var(--mvl-optic-rule-strong);
-  border-radius: 10px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 28px 64px -12px rgba(0, 0, 0, 0.88),
-    0 0 0 1px rgba(0, 0, 0, 0.9);
-  padding: 14px;
-  font-family: var(--mvl-font-sans);
+  background: var(--snap-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--snap-text);
+  border: 1px solid var(--snap-border-strong);
+  border-radius: 12px;
+  box-shadow: 0 24px 54px -12px rgba(0, 0, 0, 0.8);
+  padding: 12px;
+  font-family: var(--snap-sans);
   font-size: 12px;
-  transform-origin: top left;
-  opacity: 1;
-  transform: scale(1) translateY(0);
-  transition:
-    opacity 180ms var(--mvl-ease-out),
-    transform 180ms var(--mvl-ease-out);
+  transition: opacity 160ms var(--snap-ease), transform 160ms var(--snap-ease);
 
   @starting-style {
     opacity: 0;
-    transform: scale(0.96) translateY(6px);
+    transform: scale(0.97) translateY(4px);
   }
 }
 
@@ -277,407 +189,299 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 9px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid var(--mvl-optic-rule);
-  gap: 8px;
+  margin-bottom: 9px;
 }
 
-.mvl-fb-brand-Cluster {
+.mvl-fb-header-left {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
 }
 
-.mvl-fb-loupe-title {
-  font-family: var(--mvl-font-display);
-  font-size: 15px;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-}
-
-/* Segmented Role Switcher */
-.mvl-fb-mode-switch {
-  display: inline-flex;
-  background: var(--mvl-optic-well);
-  padding: 2.5px;
-  border-radius: 6px;
-  border: 1px solid var(--mvl-optic-rule);
-  flex-shrink: 0;
-}
-
-.mvl-fb-mode-switch button {
+.mvl-fb-mode-tag {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--mvl-text-muted);
-  padding: 4px 8px;
-  font-family: var(--mvl-font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
   white-space: nowrap;
-  cursor: pointer;
-  transition:
-    transform 140ms var(--mvl-ease-out),
-    background-color 140ms ease,
-    border-color 140ms ease,
-    color 140ms ease;
 }
 
-.mvl-fb-mode-switch button:active {
-  transform: scale(0.96);
+.mvl-fb-mode-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--snap-qa);
 }
 
-.mvl-fb-mode-switch button.active-dev {
-  background: rgba(56, 189, 248, 0.15);
-  color: var(--mvl-telemetry-cyan);
-  border-color: rgba(56, 189, 248, 0.45);
+.mvl-fb-mode-dot.dev {
+  background: var(--snap-dev);
 }
 
-.mvl-fb-mode-switch button.active-qa {
-  background: rgba(225, 45, 57, 0.18);
-  color: #fca5a5;
-  border-color: var(--mvl-shutter-crimson);
-}
-
-/* Environment Pill */
-.mvl-fb-env-badge {
+.mvl-fb-header-right {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-family: var(--mvl-font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  padding: 3px 7px;
-  border-radius: 4px;
-  background: rgba(245, 158, 11, 0.14);
-  color: var(--mvl-telemetry-amber);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  white-space: nowrap;
-  flex-shrink: 0;
-  cursor: pointer;
-  user-select: none;
-  transition: transform 140ms var(--mvl-ease-out);
+  gap: 6px;
 }
 
-.mvl-fb-env-badge:active {
-  transform: scale(0.96);
+.mvl-fb-env-badge {
+  font-family: var(--snap-mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.14);
+  color: #fbbf24;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
 }
 
 .mvl-fb-env-badge.PROD {
-  background: rgba(225, 45, 57, 0.16);
-  color: #fca5a5;
-  border-color: rgba(225, 45, 57, 0.45);
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
 }
 
 .mvl-fb-env-badge.LOCAL {
-  background: rgba(56, 189, 248, 0.16);
-  color: var(--mvl-telemetry-cyan);
-  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
 }
 
-/* Optical Specimen Stage & Vernier Reticle Header */
-.mvl-fb-crop-card {
-  background: var(--mvl-optic-well);
-  border: 1px solid var(--mvl-optic-rule);
-  border-radius: 7px;
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-
-.mvl-fb-reticle-bar {
-  display: flex;
+.mvl-fb-icon-close {
+  background: transparent;
+  border: none;
+  color: var(--snap-dim);
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 4.5px 9px;
-  background: #0d0f13;
-  border-bottom: 1px dashed #202329;
-  font-family: var(--mvl-font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--mvl-text-muted);
-  font-variant-numeric: tabular-nums;
+  border-radius: 4px;
 }
 
-.mvl-fb-reticle-coords {
-  color: var(--mvl-telemetry-amber);
+.mvl-fb-icon-close:hover {
+  color: var(--snap-text);
+}
+
+/* Compact Preview Stage */
+.mvl-fb-crop-card {
+  background: var(--snap-input);
+  border: 1px solid var(--snap-border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 9px;
 }
 
 .mvl-fb-crop-stage {
   position: relative;
-  height: 112px;
-  background-color: #07080a;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  height: 96px;
+  background-color: #090a0d;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   background-size: 12px 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-bottom: 1px solid var(--mvl-optic-rule);
 }
 
 .mvl-fb-preview-thumb {
   max-width: 96%;
-  max-height: 102px;
+  max-height: 88px;
   object-fit: contain;
-  border-radius: 3px;
-  outline: 1px solid rgba(225, 45, 57, 0.45);
-  outline-offset: -1px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.65);
+  border-radius: 4px;
 }
 
 .mvl-fb-crop-dim-tag {
   position: absolute;
-  right: 8px;
-  bottom: 6px;
-  background: rgba(10, 11, 13, 0.92);
-  color: var(--mvl-telemetry-amber);
-  border: 1px solid var(--mvl-optic-rule-strong);
-  border-radius: 3px;
-  padding: 2px 6px;
-  font-family: var(--mvl-font-mono);
-  font-size: 9.5px;
-  font-weight: 700;
+  right: 6px;
+  bottom: 5px;
+  background: rgba(16, 17, 20, 0.88);
+  color: var(--snap-muted);
+  border: 1px solid var(--snap-border);
+  border-radius: 4px;
+  padding: 1.5px 5px;
+  font-family: var(--snap-mono);
+  font-size: 9px;
   font-variant-numeric: tabular-nums;
 }
 
 .mvl-fb-meta-strip {
-  padding: 6.5px 9px;
-  display: flex;
-  flex-direction: column;
-  gap: 3.5px;
-  background: #0e1014;
-}
-
-.mvl-fb-meta-row {
+  padding: 5px 8px;
+  border-top: 1px solid var(--snap-border);
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-family: var(--mvl-font-mono);
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--snap-card);
+}
+
+.mvl-fb-meta-path {
+  font-family: var(--snap-mono);
   font-size: 10px;
-  color: var(--mvl-text-secondary);
+  color: var(--snap-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.mvl-fb-meta-row code {
-  font-family: var(--mvl-font-mono);
-  font-size: 10px;
-  color: var(--mvl-telemetry-cyan);
-  background: rgba(56, 189, 248, 0.1);
+.mvl-fb-meta-selector {
+  font-family: var(--snap-mono);
+  font-size: 9.5px;
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.12);
   padding: 1px 5px;
-  border-radius: 3px;
+  border-radius: 4px;
+  white-space: nowrap;
+  max-width: 145px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 /* QA Project & Module Selectors */
 .mvl-fb-qa-selectors {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 9px;
-}
-
-.mvl-fb-field label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: var(--mvl-font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--mvl-text-muted);
-  margin-bottom: 4px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .mvl-fb-field select {
   width: 100%;
-  background: var(--mvl-optic-well);
-  color: var(--mvl-text-primary);
-  border: 1px solid var(--mvl-optic-rule);
-  border-radius: 5px;
-  padding: 6px 8px;
-  font-family: var(--mvl-font-sans);
+  background: var(--snap-input);
+  color: var(--snap-text);
+  border: 1px solid var(--snap-border);
+  border-radius: 6px;
+  padding: 5.5px 7px;
+  font-family: var(--snap-sans);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   outline: none;
   cursor: pointer;
-  transition: border-color 140ms ease;
 }
 
-.mvl-fb-field select:focus {
-  border-color: var(--mvl-telemetry-amber);
-}
-
-/* 4-Level Severity Dial (P0 / P1 / P2 / P3) */
+/* Priority Pills (QA Mode) */
 .mvl-fb-priority-bar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-  margin-bottom: 9px;
+  gap: 4px;
+  margin-bottom: 8px;
 }
 
 .mvl-fb-prio-btn {
-  background: var(--mvl-optic-surface);
-  color: var(--mvl-text-muted);
-  border: 1px solid var(--mvl-optic-rule);
-  border-radius: 4px;
-  padding: 4.5px 4px;
-  font-family: var(--mvl-font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-align: center;
+  background: var(--snap-input);
+  color: var(--snap-dim);
+  border: 1px solid var(--snap-border);
+  border-radius: 5px;
+  padding: 4px;
+  font-family: var(--snap-sans);
+  font-size: 10px;
+  font-weight: 600;
   cursor: pointer;
-  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
 }
 
 .mvl-fb-prio-btn:hover {
-  border-color: var(--mvl-optic-rule-strong);
-  color: var(--mvl-text-primary);
+  color: var(--snap-text);
 }
 
 .mvl-fb-prio-btn.active {
-  background: rgba(225, 45, 57, 0.16);
-  color: #fca5a5;
-  border-color: var(--mvl-shutter-crimson);
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.45);
 }
 
-/* Comment Input Box */
+/* Comment Box */
 .mvl-fb-textarea-wrap {
   position: relative;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 .mvl-fb-textarea {
   width: 100%;
-  min-height: 74px;
+  min-height: 68px;
   box-sizing: border-box;
-  background: var(--mvl-optic-well);
-  color: var(--mvl-text-primary);
-  border: 1px solid var(--mvl-optic-rule-strong);
-  border-radius: 6px;
-  padding: 8.5px 10px 22px 10px;
-  font-family: var(--mvl-font-sans);
+  background: var(--snap-input);
+  color: var(--snap-text);
+  border: 1px solid var(--snap-border);
+  border-radius: 7px;
+  padding: 8px 9px 20px 9px;
+  font-family: var(--snap-sans);
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.4;
   resize: vertical;
   outline: none;
-  transition: border-color 140ms ease;
 }
 
 .mvl-fb-textarea::placeholder {
-  color: var(--mvl-text-muted);
+  color: var(--snap-dim);
 }
 
 .mvl-fb-textarea:focus {
-  border-color: var(--mvl-telemetry-amber);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .mvl-fb-kbd-hint {
   position: absolute;
   right: 8px;
-  bottom: 6px;
-  font-family: var(--mvl-font-mono);
+  bottom: 5px;
+  font-family: var(--snap-mono);
   font-size: 9px;
-  color: var(--mvl-text-muted);
+  color: var(--snap-dim);
   pointer-events: none;
 }
 
-/* Footer Actions */
+/* Footer */
 .mvl-fb-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding-top: 8px;
-  border-top: 1px solid var(--mvl-optic-rule);
 }
 
 .mvl-fb-pat-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--mvl-font-mono);
-  font-size: 9.5px;
-  color: var(--mvl-text-secondary);
+  font-size: 10.5px;
+  color: var(--snap-dim);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 190px;
-}
-
-.mvl-fb-pat-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--mvl-telemetry-emerald);
-  flex-shrink: 0;
+  max-width: 160px;
 }
 
 .mvl-fb-btn-group {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
 }
 
 .mvl-fb-btn-cancel {
-  background: var(--mvl-optic-surface);
-  color: var(--mvl-text-secondary);
-  border: 1px solid var(--mvl-optic-rule);
-  border-radius: 5px;
-  padding: 6.5px 11px;
-  font-family: var(--mvl-font-mono);
-  font-size: 10px;
-  font-weight: 700;
+  background: transparent;
+  color: var(--snap-muted);
+  border: 1px solid var(--snap-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: var(--snap-sans);
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 140ms var(--mvl-ease-out), border-color 140ms ease;
-}
-
-.mvl-fb-btn-cancel:hover {
-  border-color: var(--mvl-optic-rule-strong);
-  color: var(--mvl-text-primary);
-}
-
-.mvl-fb-btn-cancel:active {
-  transform: scale(0.96);
 }
 
 .mvl-fb-btn-submit {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+  gap: 5px;
+  background: var(--snap-dev);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 4px 12px rgba(2, 132, 199, 0.4);
-  border-radius: 5px;
-  padding: 6.5px 13px;
-  font-family: var(--mvl-font-sans);
+  border: none;
+  border-radius: 6px;
+  padding: 6.5px 12px;
+  font-family: var(--snap-sans);
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 140ms var(--mvl-ease-out), filter 140ms ease;
+  white-space: nowrap;
 }
 
 .mvl-fb-btn-submit.qa {
-  background: linear-gradient(180deg, var(--mvl-shutter-crimson) 0%, #b91c28 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 4px 12px rgba(225, 45, 57, 0.45);
-}
-
-.mvl-fb-btn-submit:not(:disabled):active {
-  transform: scale(0.96);
+  background: var(--snap-qa);
 }
 
 .mvl-fb-btn-submit:disabled {
@@ -685,48 +489,26 @@
   cursor: wait;
 }
 
-/* Telemetry Toast Notification */
+/* Toast */
 .mvl-fb-toast {
   position: fixed;
-  bottom: 66px;
-  right: 20px;
+  bottom: 62px;
+  right: 18px;
   z-index: 2147483647;
-  background: var(--mvl-optic-chassis);
-  color: var(--mvl-text-primary);
-  border: 1px solid var(--mvl-telemetry-emerald);
-  border-left: 3px solid var(--mvl-telemetry-emerald);
-  border-radius: 7px;
-  padding: 11px 14px;
-  font-family: var(--mvl-font-sans);
+  background: var(--snap-bg);
+  backdrop-filter: blur(16px);
+  color: var(--snap-text);
+  border: 1px solid var(--snap-border-strong);
+  border-radius: 9px;
+  padding: 10px 13px;
+  font-family: var(--snap-sans);
   font-size: 12px;
-  line-height: 1.45;
-  box-shadow: 0 20px 44px -8px rgba(0, 0, 0, 0.85);
-  max-width: 390px;
-  transition:
-    opacity 200ms var(--mvl-ease-out),
-    transform 200ms var(--mvl-ease-out);
-
-  @starting-style {
-    opacity: 0;
-    transform: translateY(12px) scale(0.97);
-  }
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.75);
+  max-width: 340px;
 }
 
 .mvl-fb-toast a {
-  color: var(--mvl-telemetry-amber);
-  font-family: var(--mvl-font-mono);
-  font-weight: 700;
+  color: #34d399;
+  font-weight: 600;
   text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mvl-fb-floating-pill,
-  .mvl-fb-popover,
-  .mvl-fb-toast,
-  .mvl-fb-btn-submit,
-  .mvl-fb-btn-cancel {
-    transition: opacity 150ms ease !important;
-    transform: none !important;
-  }
 }

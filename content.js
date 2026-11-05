@@ -9,7 +9,7 @@
   window.__MVL_FEEDBACK_CONTENT_LOADED__ = true;
 
   const ICONS = {
-    crop: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>`,
+    crop: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>`,
     video: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`,
     terminal: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>`,
     layers: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
@@ -82,8 +82,8 @@
     const isQa = (currentConfig.mode || "qa") === "qa";
     floatingPill.innerHTML = `
       <span class="mvl-fb-pill-icon">${ICONS.crop}</span>
-      <span class="mvl-fb-pill-title">Rangefinder</span>
-      <span class="mvl-fb-pill-mode ${isQa ? "qa" : "dev"}">${isQa ? "QA · PLANE" : "DEV · MCP"}</span>
+      <span>Feedback</span>
+      <span class="mvl-fb-pill-dot ${isQa ? "qa" : "dev"}"></span>
     `;
   }
 
@@ -288,28 +288,13 @@
 
     activeTopBar = document.createElement("div");
     activeTopBar.className = "mvl-fb-top-bar";
-    const isQa = (currentConfig.mode || "qa") === "qa";
     activeTopBar.innerHTML = `
-      <span class="mvl-fb-top-hint">${ICONS.crop} <span>Kéo chuột khoanh vùng lỗi hoặc Click phần tử</span></span>
-      <button type="button" id="mvl-top-mode-dev" class="${!isQa ? "active" : ""}">${ICONS.terminal} <span>DEV → MCP</span></button>
-      <button type="button" id="mvl-top-mode-qa" class="${isQa ? "qa-active" : ""}">${ICONS.layers} <span>QA → Plane</span></button>
+      <span class="mvl-fb-top-hint">${ICONS.crop} <span>Drag to crop or click element</span></span>
       <button type="button" id="mvl-top-switch-video">${ICONS.video} <span>Video</span></button>
-      <button type="button" id="mvl-top-cancel">${ICONS.close} <span>ESC</span></button>
+      <button type="button" id="mvl-top-cancel">${ICONS.close} <span>Esc</span></button>
     `;
     document.body.appendChild(activeTopBar);
 
-    activeTopBar.querySelector("#mvl-top-mode-dev").addEventListener("click", (e) => {
-      e.stopPropagation();
-      saveConfigPatch({ mode: "dev" });
-      activeTopBar.querySelector("#mvl-top-mode-dev").className = "active";
-      activeTopBar.querySelector("#mvl-top-mode-qa").className = "";
-    });
-    activeTopBar.querySelector("#mvl-top-mode-qa").addEventListener("click", (e) => {
-      e.stopPropagation();
-      saveConfigPatch({ mode: "qa" });
-      activeTopBar.querySelector("#mvl-top-mode-dev").className = "";
-      activeTopBar.querySelector("#mvl-top-mode-qa").className = "qa-active";
-    });
     activeTopBar.querySelector("#mvl-top-switch-video").addEventListener("click", (e) => {
       e.stopPropagation();
       startVideoCaptureFlow();
@@ -543,51 +528,47 @@
         currentConfig.planeUser?.display_name ||
         "Pham Hung";
 
+      const shortPath = (() => {
+        try {
+          const u = new URL(pageUrl);
+          return (u.pathname || "/") + (u.search ? u.search.slice(0, 20) : "");
+        } catch {
+          return pageUrl;
+        }
+      })();
+
       activePopover.innerHTML = `
         <div class="mvl-fb-popover-header">
-          <div class="mvl-fb-brand-Cluster">
-            <span class="mvl-fb-loupe-title">Optical Loupe</span>
-            <div class="mvl-fb-mode-switch">
-              <button type="button" id="mvl-pop-mode-qa" class="${isQa ? "active-qa" : ""}">
-                <span>CH-01 // QA · PLANE</span>
-              </button>
-              <button type="button" id="mvl-pop-mode-dev" class="${!isQa ? "active-dev" : ""}">
-                <span>CH-02 // DEV · MCP</span>
-              </button>
-            </div>
+          <div class="mvl-fb-header-left">
+            <span class="mvl-fb-mode-tag">
+              <span class="mvl-fb-mode-dot ${isQa ? "qa" : "dev"}"></span>
+              <span>${isQa ? "New Plane Issue" : "Send to AI MCP"}</span>
+            </span>
           </div>
-          <span class="mvl-fb-env-badge ${selectedEnv}" id="mvl-pop-env-badge" title="Click để chuyển đổi môi trường">${selectedEnv}</span>
+          <div class="mvl-fb-header-right">
+            <span class="mvl-fb-env-badge ${selectedEnv}" id="mvl-pop-env-badge" title="Switch environment">${selectedEnv}</span>
+            <button type="button" class="mvl-fb-icon-close" id="mvl-pop-close-x" title="Close">${ICONS.close}</button>
+          </div>
         </div>
 
         <div class="mvl-fb-crop-card">
-          <div class="mvl-fb-reticle-bar">
-            <span>┌ RETICLE LOCK // ${cropRect.width} × ${cropRect.height} PX</span>
-            <span class="mvl-fb-reticle-coords">X:${cropRect.x} Y:${cropRect.y} ┐</span>
-          </div>
           <div class="mvl-fb-crop-stage">
             ${
               mediaType === "video"
-                ? `<div style="display:flex;align-items:center;gap:8px;color:#38bdf8;font-weight:700;font-family:monospace;">${ICONS.video} <span>VIDEO SPECIMEN READY</span></div>`
+                ? `<div style="display:flex;align-items:center;gap:6px;color:#60a5fa;font-weight:600;">${ICONS.video} <span>Video Clip Ready</span></div>`
                 : `<img class="mvl-fb-preview-thumb" src="${mediaDataUrl}" alt="Crop Preview" />`
             }
-            <span class="mvl-fb-crop-dim-tag">⌖ ${cropRect.width} × ${cropRect.height}px</span>
+            <span class="mvl-fb-crop-dim-tag">${cropRect.width} × ${cropRect.height}</span>
           </div>
           <div class="mvl-fb-meta-strip">
-            <div class="mvl-fb-meta-row" title="${pageUrl}">
-              ${ICONS.link}
-              <span>${pageUrl}</span>
-            </div>
-            <div class="mvl-fb-meta-row" title="${compLabel}">
-              ${ICONS.code}
-              <code>${compLabel}</code>
-            </div>
+            <span class="mvl-fb-meta-path" title="${pageUrl}">${shortPath}</span>
+            <code class="mvl-fb-meta-selector" title="${compLabel}">${compLabel}</code>
           </div>
         </div>
 
         <div class="mvl-fb-qa-selectors" style="display: ${isQa ? "grid" : "none"};">
           <div class="mvl-fb-field">
-            <label><span>PROJECT PLANE</span><span style="color:#f59e0b;font-size:9px;">AUTO-DETECT</span></label>
-            <select id="mvl-pop-project">
+            <select id="mvl-pop-project" title="Plane Project">
               ${enabledProjects
                 .map(
                   (p) =>
@@ -599,9 +580,8 @@
             </select>
           </div>
           <div class="mvl-fb-field">
-            <label><span>MODULE / PHÂN HỆ</span></label>
-            <select id="mvl-pop-module">
-              <option value="">-- Không gắn Module --</option>
+            <select id="mvl-pop-module" title="Module">
+              <option value="">No Module</option>
               ${modules
                 .map(
                   (m) =>
@@ -614,11 +594,11 @@
           </div>
         </div>
 
-        <div class="mvl-fb-priority-bar" role="radiogroup" aria-label="Mức độ ưu tiên">
-          <button type="button" class="mvl-fb-prio-btn ${selectedPriority === "urgent" ? "active" : ""}" data-prio="urgent">P0 URGENT</button>
-          <button type="button" class="mvl-fb-prio-btn ${selectedPriority === "high" ? "active" : ""}" data-prio="high">P1 HIGH</button>
-          <button type="button" class="mvl-fb-prio-btn ${selectedPriority === "medium" ? "active" : ""}" data-prio="medium">P2 MEDIUM</button>
-          <button type="button" class="mvl-fb-prio-btn ${selectedPriority === "low" ? "active" : ""}" data-prio="low">P3 LOW</button>
+        <div class="mvl-fb-priority-bar" style="display: ${isQa ? "grid" : "none"};" role="radiogroup">
+          <button type="button" class="mvl-fb-prio-btn ${selectedPriority === "urgent" ? "active" : ""}" data-prio="urgent">Urgent</button>
+          <button type="button" class="mvl-fb-prio-btn ${selectedPriority === "high" ? "active" : ""}" data-prio="high">High</button>
+          <button type="button" class="mvl-fb-prio-btn ${selectedPriority === "medium" ? "active" : ""}" data-prio="medium">Medium</button>
+          <button type="button" class="mvl-fb-prio-btn ${selectedPriority === "low" ? "active" : ""}" data-prio="low">Low</button>
         </div>
 
         <div class="mvl-fb-textarea-wrap">
@@ -627,27 +607,22 @@
             class="mvl-fb-textarea"
             placeholder="${
               isQa
-                ? "Nhập mô tả lỗi UI / Nghiệp vụ cần xử lý..."
-                : "Nhập yêu cầu chỉnh sửa UI cho AI Agent..."
+                ? "Add a comment or bug description..."
+                : "Describe the UI change for AI..."
             }"
           ></textarea>
-          <span class="mvl-fb-kbd-hint">⌘ + Enter để gửi</span>
+          <span class="mvl-fb-kbd-hint">⌘↵</span>
         </div>
 
         <div class="mvl-fb-actions">
-          <div class="mvl-fb-pat-badge" title="Account Plane PAT đang kết nối">
-            <span class="mvl-fb-pat-dot" style="background:${isQa ? "#e12d39" : "#38bdf8"}"></span>
-            <span>${
-              isQa
-                ? `${patUser} · ${currentConfig.planeWorkspaceSlug || "glinteco"}`
-                : `Cloudflare Remote MCP`
-            }</span>
-          </div>
+          <span class="mvl-fb-pat-badge">
+            ${isQa ? `${patUser} · ${currentConfig.planeWorkspaceSlug || "plane"}` : "Remote MCP"}
+          </span>
           <div class="mvl-fb-btn-group">
-            <button type="button" class="mvl-fb-btn-cancel" id="mvl-pop-cancel">ESC Hủy</button>
+            <button type="button" class="mvl-fb-btn-cancel" id="mvl-pop-cancel">Cancel</button>
             <button type="button" class="mvl-fb-btn-submit ${isQa ? "qa" : ""}" id="mvl-pop-submit">
               ${ICONS.send}
-              <span>${isQa ? "◉ Tạo Task Plane" : "⚡ Đẩy vào MCP"}</span>
+              <span>${isQa ? "Create Issue" : "Send to MCP"}</span>
             </button>
           </div>
         </div>
@@ -661,16 +636,8 @@
         });
       });
 
-      activePopover.querySelector("#mvl-pop-mode-dev").addEventListener("click", () => {
-        selectedMode = "dev";
-        saveConfigPatch({ mode: "dev" });
-        renderPopoverContent();
-      });
-      activePopover.querySelector("#mvl-pop-mode-qa").addEventListener("click", () => {
-        selectedMode = "qa";
-        saveConfigPatch({ mode: "qa" });
-        renderPopoverContent();
-      });
+      const closeX = activePopover.querySelector("#mvl-pop-close-x");
+      if (closeX) closeX.addEventListener("click", closePopover);
 
       activePopover.querySelector("#mvl-pop-env-badge").addEventListener("click", () => {
         const order = ["DEV-ONL", "PROD", "LOCAL"];

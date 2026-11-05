@@ -1,155 +1,97 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>MVL Rangefinder — Optical UI Feedback &amp; Plane/MCP Telemetry</title>
+  <title>SnapUI — Visual Feedback for QA &amp; FE</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
   <div class="popup-shell">
-    <!-- Top Optical Instrument Header -->
+    <!-- Clean Header with One-Time Role Switch (QA | DEV) -->
     <header class="popup-header">
       <div class="brand-group">
         <div class="brand-icon" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="7"/>
-            <line x1="12" y1="2" x2="12" y2="6"/>
-            <line x1="12" y1="18" x2="12" y2="22"/>
-            <line x1="2" y1="12" x2="6" y2="12"/>
-            <line x1="18" y1="12" x2="22" y2="12"/>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2v14a2 2 0 0 0 2 2h14"/>
+            <path d="M18 22V8a2 2 0 0 0-2-2H2"/>
           </svg>
         </div>
-        <div class="brand-copy">
-          <div class="brand-title-row">
-            <h1>MVL Rangefinder</h1>
-            <span class="version-tag">OPTIC // v1.2</span>
-          </div>
-          <p class="subtitle">VIEWPORT LOUPE • PLANE PAT • CLOUDFLARE MCP</p>
-        </div>
+        <span class="brand-name">SnapUI</span>
+        <span id="mcp-status-badge" class="status-dot-Only" title="Remote MCP &amp; Plane Ready"></span>
       </div>
-      <div id="mcp-status-badge" class="status-pill online" title="Cloudflare Worker D1 &amp; R2 Online">
-        <span class="status-dot"></span>
-        <span>D1+R2 LIVE</span>
+
+      <!-- One-time Role Config Switch -->
+      <div class="role-pill-switch" role="group" aria-label="Role">
+        <button type="button" id="btn-mode-qa" class="role-pill active" title="QA Mode: Create Plane Issue">QA</button>
+        <button type="button" id="btn-mode-dev" class="role-pill" title="DEV Mode: Send to AI MCP">DEV</button>
       </div>
     </header>
 
-    <!-- Signature Vernier Scale & Dual-Channel Mode Switcher -->
-    <section class="mode-section" aria-label="Chế độ kính ngắm">
-      <div class="vernier-scale-bar" aria-hidden="true">
-        <span class="vernier-ticks">00 ── 20 ── 40 ── 60 ── 80 ── 100mm</span>
-        <span class="shortcut-hint"><kbd>Alt</kbd><kbd>Shift</kbd><kbd>C</kbd></span>
-      </div>
-
-      <div class="mode-grid">
-        <button type="button" id="btn-mode-qa" class="mode-card active-qa">
-          <div class="mode-card-top">
-            <span class="mode-channel">CH-01 // QA</span>
-            <span class="mode-indicator"></span>
-          </div>
-          <div class="mode-name-row">
-            <span class="mode-name">Tạo Task Plane</span>
-          </div>
-          <p class="mode-desc">Khoanh vùng lỗi UI + gắn PAT &amp; Module tự động</p>
-        </button>
-
-        <button type="button" id="btn-mode-dev" class="mode-card">
-          <div class="mode-card-top">
-            <span class="mode-channel dev">CH-02 // DEV</span>
-            <span class="mode-indicator"></span>
-          </div>
-          <div class="mode-name-row">
-            <span class="mode-name">Bắn thẳng AI MCP</span>
-          </div>
-          <p class="mode-desc">Đẩy DOM + React Fiber vào Worker D1 cho AI sửa</p>
-        </button>
-      </div>
-    </section>
-
-    <!-- Mechanical Shutter Release CTA Bar -->
+    <!-- Primary Capture Bar -->
     <section class="capture-bar">
       <button type="button" id="btn-start-crop" class="btn-capture-primary qa">
         <span class="btn-capture-left">
-          <span class="shutter-ring" aria-hidden="true"></span>
-          <span id="btn-start-crop-label">Kính ngắm Crop → Tạo Task Plane</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2v14a2 2 0 0 0 2 2h14"/>
+            <path d="M18 22V8a2 2 0 0 0-2-2H2"/>
+          </svg>
+          <span id="btn-start-crop-label">Crop &amp; Create Issue</span>
         </span>
-        <span class="btn-kbd">SHUTTER</span>
+        <kbd class="btn-kbd">⌥⇧C</kbd>
       </button>
 
-      <button type="button" id="btn-start-video" class="btn-capture-video" title="Quay video màn hình ngắn (WebM)">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button type="button" id="btn-start-video" class="btn-capture-video" title="Record screen clip">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="23 7 16 12 23 17 23 7"/>
           <rect width="15" height="14" x="1" y="5" rx="2" ry="2"/>
         </svg>
-        <span>REC</span>
       </button>
     </section>
 
-    <!-- Engraved Instrument Navigation Tabs -->
+    <!-- Minimal Navigation Tabs -->
     <nav class="segmented-tabs" role="tablist">
-      <button type="button" class="tab-btn active" data-tab="tab-project" role="tab">
-        <span>01 // PROJECT</span>
-      </button>
-      <button type="button" class="tab-btn" data-tab="tab-plane" role="tab">
-        <span>02 // PLANE &amp; MCP</span>
-      </button>
-      <button type="button" class="tab-btn" data-tab="tab-history" role="tab">
-        <span>03 // TELEMETRY</span>
-      </button>
+      <button type="button" class="tab-btn active" data-tab="tab-project" role="tab">Workspace</button>
+      <button type="button" class="tab-btn" data-tab="tab-plane" role="tab">Connection</button>
+      <button type="button" class="tab-btn" data-tab="tab-history" role="tab">History</button>
     </nav>
 
-    <!-- TAB 1: Project / Module Auto-Detect & Registry -->
+    <!-- TAB 1: Workspace (Project & Module) -->
     <main id="tab-project" class="tab-panel active">
       <div class="surface-card">
-        <div class="card-header">
-          <div class="card-title">
-            <span class="reticle-mark">┌</span>
-            <span>TELEMETRY // NHẬN DIỆN TỰ ĐỘNG</span>
-          </div>
-          <span id="detected-env-pill" class="env-pill DEV-ONL">DEV-ONL</span>
-        </div>
-
         <div class="url-preview-bar">
-          <span class="url-prefix">URL</span>
-          <span id="detected-url-text" class="detected-url">Đang kiểm tra URL...</span>
+          <span id="detected-env-pill" class="env-pill DEV-ONL">DEV</span>
+          <span id="detected-url-text" class="detected-url">Detecting URL...</span>
         </div>
 
         <div class="form-grid-2">
           <div class="field-group">
-            <label for="select-default-project">PROJECT (CHỌN LẠI)</label>
-            <div class="select-wrap">
-              <select id="select-default-project"></select>
-            </div>
+            <label for="select-default-project">Project</label>
+            <select id="select-default-project"></select>
           </div>
           <div class="field-group">
-            <label for="select-default-module">MODULE / PHÂN HỆ</label>
-            <div class="select-wrap">
-              <select id="select-default-module"></select>
-            </div>
+            <label for="select-default-module">Module</label>
+            <select id="select-default-module"></select>
           </div>
         </div>
       </div>
 
       <div class="surface-card">
         <div class="card-header">
-          <div class="card-title">
-            <span class="reticle-mark">⌖</span>
-            <span>DANH SÁCH PROJECT HIỂN THỊ</span>
-          </div>
+          <span class="card-title">Active Projects</span>
           <div class="card-actions-inline">
-            <button type="button" id="btn-toggle-add-project" class="btn-ghost-link">+ Thêm Project</button>
-            <button type="button" id="btn-select-all-projects" class="btn-ghost-link">Bật tất cả</button>
+            <button type="button" id="btn-toggle-add-project" class="btn-ghost-link">+ Add</button>
+            <button type="button" id="btn-select-all-projects" class="btn-ghost-link">All</button>
           </div>
         </div>
 
-        <!-- Inline Add Custom Project Form -->
         <div id="add-project-drawer" class="add-project-drawer" style="display: none;">
           <div class="form-grid-2">
-            <input type="text" id="input-new-proj-code" placeholder="Mã (VD: MVLNEW)" />
-            <input type="text" id="input-new-proj-name" placeholder="Tên Project trên Plane" />
+            <input type="text" id="input-new-proj-code" placeholder="Key (e.g. WEB)" />
+            <input type="text" id="input-new-proj-name" placeholder="Project Name" />
           </div>
           <div class="add-proj-row-bottom">
-            <input type="text" id="input-new-proj-id" placeholder="Plane Project UUID (tùy chọn)" />
-            <button type="button" id="btn-save-new-project" class="btn-save-mini">Lưu</button>
+            <input type="text" id="input-new-proj-id" placeholder="Project UUID (optional)" />
+            <button type="button" id="btn-save-new-project" class="btn-save-mini">Add</button>
           </div>
         </div>
 
@@ -157,88 +99,78 @@
       </div>
     </main>
 
-    <!-- TAB 2: Plane PAT & Cloudflare Remote MCP Config -->
+    <!-- TAB 2: Connection (Plane PAT & MCP) -->
     <main id="tab-plane" class="tab-panel">
       <div class="account-card" id="plane-account-banner">
         <div class="account-avatar" id="account-avatar-initials">PH</div>
         <div class="account-meta">
           <div class="account-name-row">
-            <span id="account-name-text" class="account-name">Pham Hung (hung.phamduc)</span>
-            <span class="verified-tag">PAT LOCKED</span>
+            <span id="account-name-text" class="account-name">Connected Account</span>
+            <span class="verified-tag">Active</span>
           </div>
-          <div id="account-email-text" class="account-email">hung.phamduc@glinteco.com • PAT mặc định</div>
+          <div id="account-email-text" class="account-email">Default Plane PAT</div>
         </div>
       </div>
 
       <div class="surface-card">
         <div class="field-group">
-          <label for="input-plane-pat">PLANE PERSONAL ACCESS TOKEN (PAT)</label>
+          <label for="input-plane-pat">Plane API Token (PAT)</label>
           <input
             type="password"
             id="input-plane-pat"
             placeholder="plane_api_..."
             autocomplete="off"
           />
-          <small class="field-hint">Mặc định lấy PAT của tài khoản đã gắn sẵn. Nhập PAT mới nếu muốn đổi người báo cáo.</small>
         </div>
 
         <div class="form-grid-2">
           <div class="field-group">
-            <label for="input-plane-host">PLANE HOST</label>
+            <label for="input-plane-host">Plane Host</label>
             <input type="text" id="input-plane-host" value="https://pm.glinteco.com" />
           </div>
           <div class="field-group">
-            <label for="input-plane-workspace">WORKSPACE</label>
+            <label for="input-plane-workspace">Workspace</label>
             <input type="text" id="input-plane-workspace" value="glinteco" />
           </div>
         </div>
 
         <button type="button" id="btn-sync-plane" class="btn-sync-action">
-          <span id="btn-sync-plane-label">↻ Lưu PAT &amp; Đồng bộ Projects / Modules</span>
+          <span id="btn-sync-plane-label">Sync Projects &amp; Modules</span>
         </button>
       </div>
 
-      <div class="surface-card mcp-card">
+      <div class="surface-card">
         <div class="card-header">
-          <div class="card-title">
-            <span class="reticle-mark">⚡</span>
-            <span>CLOUDFLARE REMOTE MCP ENDPOINT</span>
-          </div>
-          <span class="free-tier-tag">WORKERS FREE</span>
+          <span class="card-title">Remote MCP Endpoint</span>
+          <button type="button" id="btn-copy-mcp" class="btn-ghost-link">Copy Config</button>
         </div>
-        <div class="copy-input-group">
-          <input
-            type="text"
-            id="input-mcp-url"
-            readonly
-            value="https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp"
-          />
-          <button type="button" id="btn-copy-mcp" class="btn-copy-chip">
-            <span>Copy JSON</span>
-          </button>
-        </div>
+        <input
+          type="text"
+          id="input-mcp-url"
+          class="mcp-readonly-input"
+          readonly
+          value="https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp"
+        />
       </div>
     </main>
 
-    <!-- TAB 3: Recent Feedbacks Telemetry -->
+    <!-- TAB 3: History -->
     <main id="tab-history" class="tab-panel">
       <div class="history-toolbar">
-        <span class="section-label">LOG TELEMETRY GẦN NHẤT (D1 + PLANE)</span>
-        <button type="button" id="btn-refresh-history" class="btn-ghost-link">
-          <span>↻ Làm mới</span>
-        </button>
+        <span class="card-title">Recent Captures</span>
+        <button type="button" id="btn-refresh-history" class="btn-ghost-link">Refresh</button>
       </div>
       <div id="history-list" class="history-feed">
-        <div class="empty-state">Đang tải lịch sử...</div>
+        <div class="empty-state">Loading...</div>
       </div>
     </main>
 
-    <!-- Footer -->
+    <!-- Clean Footer -->
     <footer class="popup-footer">
       <label class="toggle-row">
         <input type="checkbox" id="chk-floating-pill" checked />
         <span class="toggle-track"><span class="toggle-thumb"></span></span>
-        <span class="toggle-label">Hiện kính ngắm nổi góc phải</span>
+        <span class="toggle-label">Floating button</span>
       </label>
       <span id="status-msg" class="status-toast"></span>
     </footer>
