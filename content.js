@@ -18,7 +18,7 @@
     check: `<svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
     link: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
     copy: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
-    bot: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>`,
+    trash: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`,
   };
 
   let currentConfig = Object.assign({}, window.MVL_DEFAULT_CONFIG || {});
@@ -30,7 +30,7 @@
   let mediaRecorder = null;
   let recordedChunks = [];
 
-  // Multi-Crop / Multi-Comment Batch State & On-Page Visual Pins
+  // Multi-Crop / Multi-Comment Batch State & On-Page Compact Markers
   const MAX_SHOTS = 8;
   let batchItems = [];
   let activeItemIndex = 0;
@@ -53,62 +53,45 @@
     }
 
     const isQa = (currentConfig.mode || "qa") === "qa";
+    const isPopoverOpen = Boolean(activePopover);
 
-    const submittedHtml = submittedPins
-      .map((sp, sIdx) => {
-        const r = sp.cropRect || { x: 80, y: 80, width: 160, height: 80 };
-        const pIdx = sp.pinOffset || 0;
-        const headerTop = pIdx === 0 ? -28 : (pIdx - 1) * 28 + 6;
-        const headerLeft = pIdx === 0 ? -2 : 6;
-        const label = sp.issueKey ? `${sp.issueKey} · #${sp.index}` : `#${sp.index}`;
-        return `
-          <div class="mvl-fb-pin-box submitted ${isQa ? "qa" : ""}" style="left:${r.x}px;top:${r.y}px;width:${r.width}px;height:${r.height}px;" data-submitted-idx="${sIdx}">
-            <div class="mvl-fb-pin-header" style="top:${headerTop}px;left:${headerLeft}px;">
-              <span class="mvl-fb-pin-badge">${escapeHtml(label)}</span>
-              <span class="mvl-fb-pin-bubble">${escapeHtml(sp.comment || "Submitted")}</span>
-            </div>
-          </div>
-        `;
-      })
-      .join("");
-
-    // Track overlapping cropRects (e.g. when clicking "+ Note" on the same crop) so pin headers stack cleanly
+    // Track overlapping cropRects (e.g. when clicking "+ Note" on the same crop) so markers sit side-by-side cleanly
     const rectCounts = {};
-    const draftHtml = batchItems
+    const markersHtml = batchItems
       .map((it, idx) => {
         const r = it.cropRect || { x: 100, y: 100, width: 200, height: 100 };
         const rectKey = `${r.x}_${r.y}_${r.width}_${r.height}`;
         const stackIdx = rectCounts[rectKey] || 0;
         rectCounts[rectKey] = stackIdx + 1;
-        const headerTop = stackIdx === 0 ? -28 : (stackIdx - 1) * 28 + 6;
-        const headerLeft = stackIdx === 0 ? -2 : 6;
-        const isActive = idx === activeItemIndex;
-        const noteText = (it.comment || "").trim();
+        const headerTop = -12;
+        const headerLeft = -12 + stackIdx * 28;
+        const isActive = isPopoverOpen && idx === activeItemIndex;
         return `
           <div class="mvl-fb-pin-box ${isQa ? "qa" : ""} ${isActive ? "active" : ""}" style="left:${r.x}px;top:${r.y}px;width:${r.width}px;height:${r.height}px;" data-pin-box-idx="${idx}">
-            <div class="mvl-fb-pin-header" style="top:${headerTop}px;left:${headerLeft}px;" data-pin-idx="${idx}" title="Click to edit comment #${idx + 1}">
-              <span class="mvl-fb-pin-badge">#${idx + 1}</span>
-              <span class="mvl-fb-pin-bubble" data-pin-bubble-idx="${idx}">${
-                noteText ? escapeHtml(noteText) : "<em>Typing comment...</em>"
-              }</span>
+            <div class="mvl-fb-pin-header" style="top:${headerTop}px;left:${headerLeft}px;" data-pin-idx="${idx}" title="Marker #${idx + 1} (Click to view / edit / delete)">
+              <span class="mvl-fb-pin-badge">${idx + 1}</span>
             </div>
           </div>
         `;
       })
       .join("");
 
-    pinsLayer.innerHTML = submittedHtml + draftHtml;
+    pinsLayer.innerHTML = markersHtml;
 
     pinsLayer.querySelectorAll("[data-pin-idx]").forEach((el) => {
       el.addEventListener("click", (ev) => {
         ev.stopPropagation();
+        const targetIdx = Number(el.getAttribute("data-pin-idx")) || 0;
         if (activePopover) {
           const curInput = activePopover.querySelector("#mvl-pop-comment");
           if (curInput && batchItems[activeItemIndex]) {
             batchItems[activeItemIndex].comment = curInput.value;
           }
+          if (activeItemIndex === targetIdx) {
+            closePopover(false);
+            return;
+          }
         }
-        const targetIdx = Number(el.getAttribute("data-pin-idx")) || 0;
         activeItemIndex = targetIdx;
         openFeedbackPopover(null);
       });
@@ -171,7 +154,7 @@
     floatingPill.setAttribute("aria-label", "SnapUI (Alt+Shift+C): Crop & Comment");
     floatingPill.addEventListener("click", () => {
       loadConfig().then(() => {
-        if (batchItems.length > 0 && !activePopover) {
+        if (batchItems.length > 0 && !batchItems.every((it) => it.submitted) && !activePopover) {
           openFeedbackPopover(null);
         } else {
           startCaptureFlow(currentConfig.captureType || "crop", false);
@@ -184,20 +167,20 @@
 
   function updateFloatingPill() {
     if (!floatingPill) return;
-    if (currentConfig.showFloatingButton === false) {
+    if (currentConfig.showFloatingButton === false || activePopover) {
       floatingPill.style.display = "none";
       return;
     }
     floatingPill.style.display = "inline-flex";
     const isQa = (currentConfig.mode || "qa") === "qa";
-    const totalCount = batchItems.length || submittedPins.length;
+    const totalCount = batchItems.length;
     const countBadge =
       totalCount > 0
         ? `<span class="mvl-fb-pill-count">${totalCount}</span>`
         : "";
     const clearPinsBtn =
-      submittedPins.length > 0 && batchItems.length === 0
-        ? `<span class="mvl-fb-pill-clear" id="mvl-fb-clear-pins" title="Clear ${submittedPins.length} pins on page">×</span>`
+      totalCount > 0 && !activePopover
+        ? `<span class="mvl-fb-pill-clear" id="mvl-fb-clear-pins" title="Clear ${totalCount} markers on page">×</span>`
         : "";
     floatingPill.innerHTML = `
       <span class="mvl-fb-pill-icon">${ICONS.crop}</span>
@@ -210,7 +193,9 @@
     if (clearBtn) {
       clearBtn.addEventListener("click", (ev) => {
         ev.stopPropagation();
+        batchItems = [];
         submittedPins = [];
+        activeItemIndex = 0;
         renderOnPagePins();
         updateFloatingPill();
       });
@@ -759,12 +744,8 @@
             }
           </div>
           <div class="mvl-fb-head-right">
-            <span class="mvl-fb-slackbot-badge" id="mvl-pop-slackbot-badge" title="AI Slackbot Engine Connected (50,404 RAG chunks · Auto-Enrich)">
-              ${ICONS.bot}
-              <span>AI Slackbot</span>
-            </span>
             <span class="mvl-fb-env-badge ${escapeHtml(selectedEnv)}" id="mvl-pop-env-badge" title="Switch environment">${escapeHtml(selectedEnv)}</span>
-            <button type="button" class="mvl-fb-icon-close" id="mvl-pop-close-x" title="Close">${ICONS.close}</button>
+            <button type="button" class="mvl-fb-icon-close" id="mvl-pop-close-x" title="Minimize popover (keep markers on page)">${ICONS.close}</button>
           </div>
         </div>
 
@@ -781,7 +762,13 @@
             <code class="mvl-fb-meta-selector" title="${escapeHtml(compLabel)}">#${activeItemIndex + 1} ${escapeHtml(compLabel)}</code>
             <span class="mvl-fb-dim-pill">${currentItem.cropRect.width}×${currentItem.cropRect.height}</span>
           </div>
-          <button type="button" class="mvl-fb-add-note-btn" id="mvl-pop-add-note" title="Add another comment item on this screen">+ Note</button>
+          <div class="mvl-fb-submeta-actions">
+            <button type="button" class="mvl-fb-add-note-btn" id="mvl-pop-add-note" title="Add another comment marker">+ Note</button>
+            <button type="button" class="mvl-fb-del-note-btn" id="mvl-pop-delete-marker" title="Delete marker #${activeItemIndex + 1}">
+              ${ICONS.trash}
+              <span>Delete</span>
+            </button>
+          </div>
         </div>
 
         ${batchNotesHtml}
@@ -832,9 +819,9 @@
         </div>
 
         <div class="mvl-fb-actions">
-          <span class="mvl-fb-mode-indicator" title="Uses AI Slackbot MCP (50,404 RAG chunks) to auto-detect SRS, Route & Code">
+          <span class="mvl-fb-mode-indicator" title="Auto-detects SRS, Route & Code">
             <span class="mvl-fb-mode-dot ${isQa ? "qa" : "dev"}"></span>
-            <span>${isQa ? `QA · AI Slackbot → Plane` : "DEV · AI MCP"}</span>
+            <span>${isQa ? `QA → Plane` : "DEV → MCP"}</span>
           </span>
           <div class="mvl-fb-btn-group">
             <button type="button" class="mvl-fb-btn-cancel" id="mvl-pop-cancel">Cancel</button>
@@ -906,6 +893,21 @@
         });
       }
 
+      // "Delete" button -> remove current marker item (CRUD Delete)
+      const delMarkerBtn = activePopover.querySelector("#mvl-pop-delete-marker");
+      if (delMarkerBtn) {
+        delMarkerBtn.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          batchItems.splice(activeItemIndex, 1);
+          if (batchItems.length === 0) {
+            closePopover(true);
+            return;
+          }
+          activeItemIndex = Math.max(0, Math.min(activeItemIndex, batchItems.length - 1));
+          renderPopoverContent();
+        });
+      }
+
       const urlBar = activePopover.querySelector("#mvl-pop-url-bar");
       const urlCopyBtn = activePopover.querySelector("#mvl-pop-copy-url");
       const urlTextEl = activePopover.querySelector("#mvl-pop-url-text");
@@ -972,7 +974,12 @@
       }
 
       const closeX = activePopover.querySelector("#mvl-pop-close-x");
-      if (closeX) closeX.addEventListener("click", () => closePopover(true));
+      if (closeX) {
+        closeX.addEventListener("click", () => {
+          syncCurrentCommentFromDom();
+          closePopover(false);
+        });
+      }
 
       activePopover.querySelector("#mvl-pop-env-badge").addEventListener("click", () => {
         syncCurrentCommentFromDom();
@@ -1157,25 +1164,14 @@
 
         const totalSent = batchItems.length;
         const issueKey = result.planeIssue?.identifier || result.id || "";
-        const pinRectCounts = {};
-        batchItems.forEach((it, idx) => {
-          const r = it.cropRect || { x: 80, y: 80, width: 160, height: 80 };
-          const rKey = `${r.x}_${r.y}_${r.width}_${r.height}`;
-          const pOffset = pinRectCounts[rKey] || 0;
-          pinRectCounts[rKey] = pOffset + 1;
-          submittedPins.push({
-            index: idx + 1,
-            issueKey,
-            comment: (it.comment || "").trim(),
-            cropRect: Object.assign({}, r),
-            pinOffset: pOffset,
-          });
+        batchItems.forEach((it) => {
+          it.submitted = true;
+          it.issueKey = issueKey;
         });
-        closePopover(true);
+        closePopover(false);
         if (selectedMode === "qa" && result.planeIssue) {
-          const aiDoc = result.aiSlackbot?.route_info?.srs_doc || result.aiSlackbot?.route_info?.screen_name || "SRS & Code";
           showToast(
-            `<div style="font-weight:600;margin-bottom:2px;">Created Plane Issue (${totalSent} item${totalSent > 1 ? "s" : ""}): <a href="${result.planeIssue.url}" target="_blank">${result.planeIssue.identifier}</a></div><div style="font-size:11px;color:#64748b;">AI Slackbot detected: <code>${escapeHtml(String(aiDoc).slice(0, 42))}</code> · R2 & MCP synced</div>`
+            `<div style="font-weight:600;margin-bottom:2px;">Created Plane Issue (${totalSent} item${totalSent > 1 ? "s" : ""}): <a href="${result.planeIssue.url}" target="_blank">${result.planeIssue.identifier}</a></div><div style="font-size:11px;color:#64748b;">Click any marker (1..${totalSent}) on page to view / edit / delete</div>`
           );
         } else {
           showToast(
@@ -1194,6 +1190,7 @@
     }
 
     document.body.appendChild(activePopover);
+    updateFloatingPill();
     renderPopoverContent();
   }
 
