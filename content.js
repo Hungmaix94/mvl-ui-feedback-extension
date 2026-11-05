@@ -30,10 +30,90 @@
   let mediaRecorder = null;
   let recordedChunks = [];
 
-  // Multi-Crop / Multi-Comment Batch State
+  // Multi-Crop / Multi-Comment Batch State & On-Page Visual Pins
   const MAX_SHOTS = 8;
   let batchItems = [];
   let activeItemIndex = 0;
+  let submittedPins = [];
+  let pinsLayer = null;
+
+  function renderOnPagePins() {
+    if (!batchItems.length && !submittedPins.length) {
+      if (pinsLayer) {
+        pinsLayer.remove();
+        pinsLayer = null;
+      }
+      return;
+    }
+    if (!pinsLayer) {
+      pinsLayer = document.createElement("div");
+      pinsLayer.className = "mvl-fb-pins-layer";
+      pinsLayer.id = "mvl-fb-pins-layer";
+      document.body.appendChild(pinsLayer);
+    }
+
+    const isQa = (currentConfig.mode || "qa") === "qa";
+
+    const submittedHtml = submittedPins
+      .map((sp, sIdx) => {
+        const r = sp.cropRect || { x: 80, y: 80, width: 160, height: 80 };
+        const pIdx = sp.pinOffset || 0;
+        const headerTop = pIdx === 0 ? -28 : (pIdx - 1) * 28 + 6;
+        const headerLeft = pIdx === 0 ? -2 : 6;
+        const label = sp.issueKey ? `${sp.issueKey} · #${sp.index}` : `#${sp.index}`;
+        return `
+          <div class="mvl-fb-pin-box submitted ${isQa ? "qa" : ""}" style="left:${r.x}px;top:${r.y}px;width:${r.width}px;height:${r.height}px;" data-submitted-idx="${sIdx}">
+            <div class="mvl-fb-pin-header" style="top:${headerTop}px;left:${headerLeft}px;">
+              <span class="mvl-fb-pin-badge">${escapeHtml(label)}</span>
+              <span class="mvl-fb-pin-bubble">${escapeHtml(sp.comment || "Submitted")}</span>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    // Track overlapping cropRects (e.g. when clicking "+ Note" on the same crop) so pin headers stack cleanly
+    const rectCounts = {};
+    const draftHtml = batchItems
+      .map((it, idx) => {
+        const r = it.cropRect || { x: 100, y: 100, width: 200, height: 100 };
+        const rectKey = `${r.x}_${r.y}_${r.width}_${r.height}`;
+        const stackIdx = rectCounts[rectKey] || 0;
+        rectCounts[rectKey] = stackIdx + 1;
+        const headerTop = stackIdx === 0 ? -28 : (stackIdx - 1) * 28 + 6;
+        const headerLeft = stackIdx === 0 ? -2 : 6;
+        const isActive = idx === activeItemIndex;
+        const noteText = (it.comment || "").trim();
+        return `
+          <div class="mvl-fb-pin-box ${isQa ? "qa" : ""} ${isActive ? "active" : ""}" style="left:${r.x}px;top:${r.y}px;width:${r.width}px;height:${r.height}px;" data-pin-box-idx="${idx}">
+            <div class="mvl-fb-pin-header" style="top:${headerTop}px;left:${headerLeft}px;" data-pin-idx="${idx}" title="Click to edit comment #${idx + 1}">
+              <span class="mvl-fb-pin-badge">#${idx + 1}</span>
+              <span class="mvl-fb-pin-bubble" data-pin-bubble-idx="${idx}">${
+                noteText ? escapeHtml(noteText) : "<em>Typing comment...</em>"
+              }</span>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    pinsLayer.innerHTML = submittedHtml + draftHtml;
+
+    pinsLayer.querySelectorAll("[data-pin-idx]").forEach((el) => {
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        if (activePopover) {
+          const curInput = activePopover.querySelector("#mvl-pop-comment");
+          if (curInput && batchItems[activeItemIndex]) {
+            batchItems[activeItemIndex].comment = curInput.value;
+          }
+        }
+        const targetIdx = Number(el.getAttribute("data-pin-idx")) || 0;
+        activeItemIndex = targetIdx;
+        openFeedbackPopover(null);
+      });
+    });
+  }
 
   /**
    * P0 Security: Robust HTML entity sanitizer
@@ -62,6 +142,7 @@
   }
 
   async function loadConfig() {
+    currentConfig = Object.assign({}, window.MVL_DEFAULT_CONFIG);
     if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
       const stored = await chrome.storage.local.get(["mvlConfig"]);
       if (stored && stored.mvlConfig) {
@@ -69,6 +150,15 @@
       }
     }
     updateFloatingPill();
+  }
+
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === "local" && changes.mvlConfig?.newValue) {
+        currentConfig = Object.assign({}, window.MVL_DEFAULT_CONFIG, changes.mvlConfig.newValue);
+        updateFloatingPill();
+      }
+    });
   }
 
   function createFloatingPill() {
@@ -80,11 +170,13 @@
     floatingPill.title = "SnapUI (Alt+Shift+C): Crop & Comment";
     floatingPill.setAttribute("aria-label", "SnapUI (Alt+Shift+C): Crop & Comment");
     floatingPill.addEventListener("click", () => {
-      if (batchItems.length > 0 && !activePopover) {
-        openFeedbackPopover(null);
-      } else {
-        startCaptureFlow(currentConfig.captureType || "crop", false);
-      }
+      loadConfig().then(() => {
+        if (batchItems.length > 0 && !activePopover) {
+          openFeedbackPopover(null);
+        } else {
+          startCaptureFlow(currentConfig.captureType || "crop", false);
+        }
+      });
     });
     document.body.appendChild(floatingPill);
     updateFloatingPill();
@@ -98,16 +190,31 @@
     }
     floatingPill.style.display = "inline-flex";
     const isQa = (currentConfig.mode || "qa") === "qa";
+    const totalCount = batchItems.length || submittedPins.length;
     const countBadge =
-      batchItems.length > 0
-        ? `<span class="mvl-fb-pill-count">${batchItems.length}</span>`
+      totalCount > 0
+        ? `<span class="mvl-fb-pill-count">${totalCount}</span>`
+        : "";
+    const clearPinsBtn =
+      submittedPins.length > 0 && batchItems.length === 0
+        ? `<span class="mvl-fb-pill-clear" id="mvl-fb-clear-pins" title="Clear ${submittedPins.length} pins on page">×</span>`
         : "";
     floatingPill.innerHTML = `
       <span class="mvl-fb-pill-icon">${ICONS.crop}</span>
       <span>Feedback</span>
       ${countBadge}
+      ${clearPinsBtn}
       <span class="mvl-fb-pill-dot ${isQa ? "qa" : "dev"}"></span>
     `;
+    const clearBtn = floatingPill.querySelector("#mvl-fb-clear-pins");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        submittedPins = [];
+        renderOnPagePins();
+        updateFloatingPill();
+      });
+    }
   }
 
   function getUniqueCssSelector(el) {
@@ -299,6 +406,7 @@
       batchItems = [];
       activeItemIndex = 0;
     }
+    renderOnPagePins();
     if (floatingPill) updateFloatingPill();
   }
 
@@ -415,8 +523,10 @@
       const domFp = extractDomFingerprintInRect(cropRect);
       const bridgeData = await inspectPointViaBridge(domFp.centerX, domFp.centerY);
 
+      if (pinsLayer) pinsLayer.style.display = "none";
       await new Promise((r) => setTimeout(r, 40));
       const croppedDataUrl = await captureAndCropRect(cropRect);
+      if (pinsLayer) pinsLayer.style.display = "block";
 
       const fingerprint = {
         domSelector: domFp.domSelector,
@@ -550,10 +660,13 @@
 
     const anchorRect = batchItems[activeItemIndex].cropRect || { x: 100, y: 100, width: 200, height: 100 };
     const popWidth = 332;
-    const popHeight = 250;
-    let left = anchorRect.x + anchorRect.width + 14;
+    const popHeight = 350;
+    const maxCropRight = Math.max(
+      ...batchItems.map((it) => (it.cropRect?.x || 100) + (it.cropRect?.width || 200))
+    );
+    let left = (batchItems.length > 1 ? maxCropRight : anchorRect.x + anchorRect.width) + 16;
     if (left + popWidth > window.innerWidth - 14) {
-      left = Math.max(14, anchorRect.x - popWidth - 14);
+      left = Math.max(14, window.innerWidth - popWidth - 16);
     }
     if (left < 14) left = Math.max(14, Math.min(anchorRect.x, window.innerWidth - popWidth - 14));
     let top = Math.min(Math.max(14, anchorRect.y), Math.max(14, window.innerHeight - popHeight - 16));
@@ -582,6 +695,7 @@
     }
 
     function renderPopoverContent() {
+      renderOnPagePins();
       const isQa = selectedMode === "qa";
       const enabledProjects = getEnabledProjects();
       const modules = getModulesForProject(selectedProjectId);
@@ -922,6 +1036,8 @@
       commentInput.focus();
       commentInput.setSelectionRange(commentInput.value.length, commentInput.value.length);
       commentInput.addEventListener("input", () => {
+        document.querySelectorAll(".mvl-fb-toast").forEach((t) => t.remove());
+        commentInput.style.borderColor = "";
         if (batchItems[activeItemIndex]) {
           batchItems[activeItemIndex].comment = commentInput.value;
           const activeChipText = activePopover.querySelector(
@@ -929,8 +1045,15 @@
           );
           if (activeChipText) {
             activeChipText.innerHTML = `<strong>#${activeItemIndex + 1}</strong> ${
-              commentInput.value ? commentInput.value : "<em>Add note...</em>"
+              commentInput.value ? escapeHtml(commentInput.value) : "<em>Add note...</em>"
             }`;
+          }
+          const activePinBubble = pinsLayer?.querySelector(
+            `.mvl-fb-pin-bubble[data-pin-bubble-idx="${activeItemIndex}"]`
+          );
+          if (activePinBubble) {
+            const val = (commentInput.value || "").trim();
+            activePinBubble.innerHTML = val ? escapeHtml(val) : "<em>Typing comment...</em>";
           }
         }
       });
@@ -1033,6 +1156,21 @@
         }
 
         const totalSent = batchItems.length;
+        const issueKey = result.planeIssue?.identifier || result.id || "";
+        const pinRectCounts = {};
+        batchItems.forEach((it, idx) => {
+          const r = it.cropRect || { x: 80, y: 80, width: 160, height: 80 };
+          const rKey = `${r.x}_${r.y}_${r.width}_${r.height}`;
+          const pOffset = pinRectCounts[rKey] || 0;
+          pinRectCounts[rKey] = pOffset + 1;
+          submittedPins.push({
+            index: idx + 1,
+            issueKey,
+            comment: (it.comment || "").trim(),
+            cropRect: Object.assign({}, r),
+            pinOffset: pOffset,
+          });
+        });
         closePopover(true);
         if (selectedMode === "qa" && result.planeIssue) {
           const aiDoc = result.aiSlackbot?.route_info?.srs_doc || result.aiSlackbot?.route_info?.screen_name || "SRS & Code";
@@ -1045,6 +1183,14 @@
           );
         }
       });
+
+      const popRect = activePopover.getBoundingClientRect();
+      if (popRect.bottom > window.innerHeight - 12) {
+        activePopover.style.top = `${Math.max(12, window.innerHeight - popRect.height - 12)}px`;
+      }
+      if (popRect.right > window.innerWidth - 12) {
+        activePopover.style.left = `${Math.max(12, window.innerWidth - popRect.width - 12)}px`;
+      }
     }
 
     document.body.appendChild(activePopover);
@@ -1052,6 +1198,7 @@
   }
 
   function showToast(htmlContent, isError = false) {
+    document.querySelectorAll(".mvl-fb-toast").forEach((t) => t.remove());
     const toast = document.createElement("div");
     toast.className = "mvl-fb-toast";
     if (isError) toast.style.borderColor = "#fecdd3";
