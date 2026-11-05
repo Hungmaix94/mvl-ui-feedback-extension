@@ -11,6 +11,9 @@
 :root,
 :host,
 .popup-shell {
+  --r-outer: 16px;
+  --r-mid: 10px;
+  --r-inner: 7px;
   --bg-obsidian: #090a0f;
   --bg-card: rgba(255, 255, 255, 0.035);
   --bg-card-hover: rgba(255, 255, 255, 0.055);
@@ -214,7 +217,7 @@ body,
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
-  transition: all 160ms ease;
+  transition: background-color 160ms ease, color 160ms ease;
 }
 
 .mode-name {
@@ -230,7 +233,7 @@ body,
   height: 7px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
-  transition: all 160ms ease;
+  transition: background-color 160ms ease, box-shadow 160ms ease;
 }
 
 .mode-desc {
@@ -389,7 +392,11 @@ body,
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 150ms var(--ease-out-expo);
+  transition:
+    background-color 150ms var(--ease-out-expo),
+    border-color 150ms var(--ease-out-expo),
+    color 150ms var(--ease-out-expo),
+    box-shadow 150ms var(--ease-out-expo);
 }
 
 .tab-btn:hover {
@@ -548,7 +555,7 @@ body,
   font-size: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 140ms ease;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
 .btn-ghost-link:hover {
@@ -579,7 +586,7 @@ body,
   border-radius: 7px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
-  transition: all 140ms ease;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
 .project-check-item:hover {
@@ -746,7 +753,7 @@ body,
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 140ms ease;
+  transition: background-color 140ms ease, border-color 140ms ease;
 }
 
 .btn-copy-chip:hover {

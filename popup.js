@@ -80,7 +80,13 @@
   function renderModeButtons() {
     const isQa = (config.mode || "qa") === "qa";
     btnModeDev.className = `mode-card ${!isQa ? "active-dev" : ""}`;
+    btnModeDev.setAttribute("aria-checked", !isQa ? "true" : "false");
+    btnModeDev.tabIndex = !isQa ? 0 : -1;
+
     btnModeQa.className = `mode-card ${isQa ? "active-qa" : ""}`;
+    btnModeQa.setAttribute("aria-checked", isQa ? "true" : "false");
+    btnModeQa.tabIndex = isQa ? 0 : -1;
+
     btnStartCrop.className = `btn-capture-primary ${isQa ? "qa" : ""}`;
     if (btnStartCropLabel) {
       btnStartCropLabel.textContent = isQa
@@ -209,6 +215,25 @@
     renderModeButtons();
     setStatus("QA Mode → Tạo Task lên Plane");
   });
+
+  const modeRadiogroup = document.querySelector('[role="radiogroup"]');
+  if (modeRadiogroup) {
+    modeRadiogroup.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        saveConfig({ mode: "dev" });
+        renderModeButtons();
+        btnModeDev.focus();
+        setStatus("DEV Mode → Đẩy thẳng vào MCP");
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        saveConfig({ mode: "qa" });
+        renderModeButtons();
+        btnModeQa.focus();
+        setStatus("QA Mode → Tạo Task lên Plane");
+      }
+    });
+  }
 
   selectDefaultProject.addEventListener("change", (e) => {
     const pid = e.target.value;
