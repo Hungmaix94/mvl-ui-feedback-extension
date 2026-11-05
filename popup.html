@@ -2,147 +2,126 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>MVL UI Feedback — Crop to Plane & AI MCP</title>
+  <title>MVL Rangefinder — Optical UI Feedback &amp; Plane/MCP Telemetry</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
   <div class="popup-shell">
-    <!-- Top Header -->
+    <!-- Top Optical Instrument Header -->
     <header class="popup-header">
       <div class="brand-group">
         <div class="brand-icon" aria-hidden="true">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 2v14a2 2 0 0 0 2 2h14"/>
-            <path d="M18 22V8a2 2 0 0 0-2-2H2"/>
+            <circle cx="12" cy="12" r="7"/>
+            <line x1="12" y1="2" x2="12" y2="6"/>
+            <line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="6" y2="12"/>
+            <line x1="18" y1="12" x2="22" y2="12"/>
           </svg>
         </div>
         <div class="brand-copy">
           <div class="brand-title-row">
-            <h1>MVL Feedback</h1>
-            <span class="version-tag">v1.1</span>
+            <h1>MVL Rangefinder</h1>
+            <span class="version-tag">OPTIC // v1.2</span>
           </div>
-          <p class="subtitle">Visual Crop • Plane Issue • Remote MCP</p>
+          <p class="subtitle">VIEWPORT LOUPE • PLANE PAT • CLOUDFLARE MCP</p>
         </div>
       </div>
-      <div id="mcp-status-badge" class="status-pill online" title="Cloudflare Worker & D1 Online">
+      <div id="mcp-status-badge" class="status-pill online" title="Cloudflare Worker D1 &amp; R2 Online">
         <span class="status-dot"></span>
-        <span>MCP Live</span>
+        <span>D1+R2 LIVE</span>
       </div>
     </header>
 
-    <!-- Role Mode Switcher (DEV vs QA) -->
-    <section class="mode-section" aria-label="Chế độ làm việc">
-      <div class="section-header-row">
-        <span class="section-label">CHẾ ĐỘ LÀM VIỆC (ROLE MODE)</span>
-        <span class="shortcut-hint"><kbd>Alt</kbd><kbd>Shift</kbd><kbd>F</kbd></span>
+    <!-- Signature Vernier Scale & Dual-Channel Mode Switcher -->
+    <section class="mode-section" aria-label="Chế độ kính ngắm">
+      <div class="vernier-scale-bar" aria-hidden="true">
+        <span class="vernier-ticks">00 ── 20 ── 40 ── 60 ── 80 ── 100mm</span>
+        <span class="shortcut-hint"><kbd>Alt</kbd><kbd>Shift</kbd><kbd>C</kbd></span>
       </div>
-      <div class="mode-grid">
-        <button type="button" id="btn-mode-dev" class="mode-card">
-          <div class="mode-card-top">
-            <span class="mode-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="16 18 22 12 16 6"/>
-                <polyline points="8 6 2 12 8 18"/>
-              </svg>
-            </span>
-            <span class="mode-name">DEV Mode</span>
-            <span class="mode-indicator"></span>
-          </div>
-          <p class="mode-desc">Đẩy thẳng vào Cloudflare MCP cho AI sửa code</p>
-        </button>
 
+      <div class="mode-grid">
         <button type="button" id="btn-mode-qa" class="mode-card active-qa">
           <div class="mode-card-top">
-            <span class="mode-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <path d="m9 12 2 2 4-4"/>
-              </svg>
-            </span>
-            <span class="mode-name">QA Mode</span>
+            <span class="mode-channel">CH-01 // QA</span>
             <span class="mode-indicator"></span>
           </div>
-          <p class="mode-desc">Tạo Task lên Plane bằng PAT + Lưu ngữ cảnh MCP</p>
+          <div class="mode-name-row">
+            <span class="mode-name">Tạo Task Plane</span>
+          </div>
+          <p class="mode-desc">Khoanh vùng lỗi UI + gắn PAT &amp; Module tự động</p>
+        </button>
+
+        <button type="button" id="btn-mode-dev" class="mode-card">
+          <div class="mode-card-top">
+            <span class="mode-channel dev">CH-02 // DEV</span>
+            <span class="mode-indicator"></span>
+          </div>
+          <div class="mode-name-row">
+            <span class="mode-name">Bắn thẳng AI MCP</span>
+          </div>
+          <p class="mode-desc">Đẩy DOM + React Fiber vào Worker D1 cho AI sửa</p>
         </button>
       </div>
     </section>
 
-    <!-- Primary Capture CTA -->
+    <!-- Mechanical Shutter Release CTA Bar -->
     <section class="capture-bar">
       <button type="button" id="btn-start-crop" class="btn-capture-primary qa">
         <span class="btn-capture-left">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 2v14a2 2 0 0 0 2 2h14"/>
-            <path d="M18 22V8a2 2 0 0 0-2-2H2"/>
-          </svg>
-          <span id="btn-start-crop-label">Chụp Ảnh Crop → Tạo Task Plane</span>
+          <span class="shutter-ring" aria-hidden="true"></span>
+          <span id="btn-start-crop-label">Kính ngắm Crop → Tạo Task Plane</span>
         </span>
-        <span class="btn-kbd">Crop</span>
+        <span class="btn-kbd">SHUTTER</span>
       </button>
 
       <button type="button" id="btn-start-video" class="btn-capture-video" title="Quay video màn hình ngắn (WebM)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="23 7 16 12 23 17 23 7"/>
           <rect width="15" height="14" x="1" y="5" rx="2" ry="2"/>
         </svg>
-        <span>Video</span>
+        <span>REC</span>
       </button>
     </section>
 
-    <!-- Segmented Navigation Tabs -->
+    <!-- Engraved Instrument Navigation Tabs -->
     <nav class="segmented-tabs" role="tablist">
       <button type="button" class="tab-btn active" data-tab="tab-project" role="tab">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-        </svg>
-        <span>Project &amp; Module</span>
+        <span>01 // PROJECT</span>
       </button>
       <button type="button" class="tab-btn" data-tab="tab-plane" role="tab">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
-        </svg>
-        <span>Plane &amp; MCP</span>
+        <span>02 // PLANE &amp; MCP</span>
       </button>
       <button type="button" class="tab-btn" data-tab="tab-history" role="tab">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-        <span>Lịch sử</span>
+        <span>03 // TELEMETRY</span>
       </button>
     </nav>
 
-    <!-- TAB 1: Project / Module Auto-Detect & List Project Config -->
+    <!-- TAB 1: Project / Module Auto-Detect & Registry -->
     <main id="tab-project" class="tab-panel active">
       <div class="surface-card">
         <div class="card-header">
           <div class="card-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
-            </svg>
-            <span>Nhận diện tự động từ Tab hiện tại</span>
+            <span class="reticle-mark">┌</span>
+            <span>TELEMETRY // NHẬN DIỆN TỰ ĐỘNG</span>
           </div>
           <span id="detected-env-pill" class="env-pill DEV-ONL">DEV-ONL</span>
         </div>
 
         <div class="url-preview-bar">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-          </svg>
+          <span class="url-prefix">URL</span>
           <span id="detected-url-text" class="detected-url">Đang kiểm tra URL...</span>
         </div>
 
         <div class="form-grid-2">
           <div class="field-group">
-            <label for="select-default-project">Project (Chọn lại)</label>
+            <label for="select-default-project">PROJECT (CHỌN LẠI)</label>
             <div class="select-wrap">
               <select id="select-default-project"></select>
             </div>
           </div>
           <div class="field-group">
-            <label for="select-default-module">Module / Phân hệ</label>
+            <label for="select-default-module">MODULE / PHÂN HỆ</label>
             <div class="select-wrap">
               <select id="select-default-module"></select>
             </div>
@@ -153,18 +132,27 @@
       <div class="surface-card">
         <div class="card-header">
           <div class="card-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="8" y1="6" x2="21" y2="6"/>
-              <line x1="8" y1="12" x2="21" y2="12"/>
-              <line x1="8" y1="18" x2="21" y2="18"/>
-              <line x1="3" y1="6" x2="3.01" y2="6"/>
-              <line x1="3" y1="12" x2="3.01" y2="12"/>
-              <line x1="3" y1="18" x2="3.01" y2="18"/>
-            </svg>
-            <span>Danh sách Project hiển thị</span>
+            <span class="reticle-mark">⌖</span>
+            <span>DANH SÁCH PROJECT HIỂN THỊ</span>
           </div>
-          <button type="button" id="btn-select-all-projects" class="btn-ghost-link">Bật tất cả</button>
+          <div class="card-actions-inline">
+            <button type="button" id="btn-toggle-add-project" class="btn-ghost-link">+ Thêm Project</button>
+            <button type="button" id="btn-select-all-projects" class="btn-ghost-link">Bật tất cả</button>
+          </div>
         </div>
+
+        <!-- Inline Add Custom Project Form -->
+        <div id="add-project-drawer" class="add-project-drawer" style="display: none;">
+          <div class="form-grid-2">
+            <input type="text" id="input-new-proj-code" placeholder="Mã (VD: MVLNEW)" />
+            <input type="text" id="input-new-proj-name" placeholder="Tên Project trên Plane" />
+          </div>
+          <div class="add-proj-row-bottom">
+            <input type="text" id="input-new-proj-id" placeholder="Plane Project UUID (tùy chọn)" />
+            <button type="button" id="btn-save-new-project" class="btn-save-mini">Lưu</button>
+          </div>
+        </div>
+
         <div id="project-checklist" class="project-chip-grid"></div>
       </div>
     </main>
@@ -176,7 +164,7 @@
         <div class="account-meta">
           <div class="account-name-row">
             <span id="account-name-text" class="account-name">Pham Hung (hung.phamduc)</span>
-            <span class="verified-tag">Connected</span>
+            <span class="verified-tag">PAT LOCKED</span>
           </div>
           <div id="account-email-text" class="account-email">hung.phamduc@glinteco.com • PAT mặc định</div>
         </div>
@@ -184,47 +172,39 @@
 
       <div class="surface-card">
         <div class="field-group">
-          <label for="input-plane-pat">Plane Personal Access Token (PAT)</label>
+          <label for="input-plane-pat">PLANE PERSONAL ACCESS TOKEN (PAT)</label>
           <input
             type="password"
             id="input-plane-pat"
             placeholder="plane_api_..."
             autocomplete="off"
           />
-          <small class="field-hint">Mặc định dùng PAT tài khoản đã gắn sẵn. Nhập PAT riêng nếu muốn đổi người báo cáo.</small>
+          <small class="field-hint">Mặc định lấy PAT của tài khoản đã gắn sẵn. Nhập PAT mới nếu muốn đổi người báo cáo.</small>
         </div>
 
         <div class="form-grid-2">
           <div class="field-group">
-            <label for="input-plane-host">Plane Host</label>
+            <label for="input-plane-host">PLANE HOST</label>
             <input type="text" id="input-plane-host" value="https://pm.glinteco.com" />
           </div>
           <div class="field-group">
-            <label for="input-plane-workspace">Workspace</label>
+            <label for="input-plane-workspace">WORKSPACE</label>
             <input type="text" id="input-plane-workspace" value="glinteco" />
           </div>
         </div>
 
         <button type="button" id="btn-sync-plane" class="btn-sync-action">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-            <path d="M3 3v5h5"/>
-            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
-            <path d="M16 16h5v5"/>
-          </svg>
-          <span id="btn-sync-plane-label">Lưu PAT &amp; Đồng bộ Projects / Modules</span>
+          <span id="btn-sync-plane-label">↻ Lưu PAT &amp; Đồng bộ Projects / Modules</span>
         </button>
       </div>
 
       <div class="surface-card mcp-card">
         <div class="card-header">
           <div class="card-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
-            </svg>
-            <span>Cloudflare Remote MCP Endpoint</span>
+            <span class="reticle-mark">⚡</span>
+            <span>CLOUDFLARE REMOTE MCP ENDPOINT</span>
           </div>
-          <span class="free-tier-tag">Free Tier</span>
+          <span class="free-tier-tag">WORKERS FREE</span>
         </div>
         <div class="copy-input-group">
           <input
@@ -234,28 +214,18 @@
             value="https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp"
           />
           <button type="button" id="btn-copy-mcp" class="btn-copy-chip">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-            </svg>
             <span>Copy JSON</span>
           </button>
         </div>
       </div>
     </main>
 
-    <!-- TAB 3: Recent Feedbacks History -->
+    <!-- TAB 3: Recent Feedbacks Telemetry -->
     <main id="tab-history" class="tab-panel">
       <div class="history-toolbar">
-        <span class="section-label">FEEDBACK GẦN NHẤT (CLOUDFLARE D1 + PLANE)</span>
+        <span class="section-label">LOG TELEMETRY GẦN NHẤT (D1 + PLANE)</span>
         <button type="button" id="btn-refresh-history" class="btn-ghost-link">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-            <path d="M3 3v5h5"/>
-            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
-            <path d="M16 16h5v5"/>
-          </svg>
-          <span>Làm mới</span>
+          <span>↻ Làm mới</span>
         </button>
       </div>
       <div id="history-list" class="history-feed">
@@ -268,7 +238,7 @@
       <label class="toggle-row">
         <input type="checkbox" id="chk-floating-pill" checked />
         <span class="toggle-track"><span class="toggle-thumb"></span></span>
-        <span class="toggle-label">Hiện nút nổi góc phải màn hình</span>
+        <span class="toggle-label">Hiện kính ngắm nổi góc phải</span>
       </label>
       <span id="status-msg" class="status-toast"></span>
     </footer>

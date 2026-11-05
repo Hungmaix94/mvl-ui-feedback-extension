@@ -84,8 +84,8 @@
     btnStartCrop.className = `btn-capture-primary ${isQa ? "qa" : ""}`;
     if (btnStartCropLabel) {
       btnStartCropLabel.textContent = isQa
-        ? "Chụp Ảnh Crop → Tạo Task Plane"
-        : "Chụp Ảnh Crop → Đẩy vào MCP";
+        ? "Kính ngắm Crop → Tạo Task Plane"
+        : "Kính ngắm Crop → Đẩy vào MCP";
     }
   }
 
@@ -240,6 +240,40 @@
     renderProjectDropdowns(detected);
     setStatus("Đã bật tất cả Project");
   });
+
+  const btnToggleAddProject = document.getElementById("btn-toggle-add-project");
+  const addProjectDrawer = document.getElementById("add-project-drawer");
+  const btnSaveNewProject = document.getElementById("btn-save-new-project");
+  if (btnToggleAddProject && addProjectDrawer) {
+    btnToggleAddProject.addEventListener("click", () => {
+      const isHidden = addProjectDrawer.style.display === "none";
+      addProjectDrawer.style.display = isHidden ? "flex" : "none";
+    });
+  }
+  if (btnSaveNewProject) {
+    btnSaveNewProject.addEventListener("click", () => {
+      const codeEl = document.getElementById("input-new-proj-code");
+      const nameEl = document.getElementById("input-new-proj-name");
+      const idEl = document.getElementById("input-new-proj-id");
+      const code = (codeEl?.value || "").trim().toUpperCase();
+      const name = (nameEl?.value || "").trim();
+      const id = (idEl?.value || "").trim() || `custom-${code.toLowerCase()}-${Date.now()}`;
+      if (!code || !name) {
+        setStatus("Nhập Mã & Tên Project", true);
+        return;
+      }
+      const existing = config.projects || [];
+      const updatedProjects = [{ id, identifier: code, name }, ...existing.filter((p) => p.identifier !== code)];
+      const updatedEnabled = Array.from(new Set([code, ...(config.enabledProjectCodes || [])]));
+      saveConfig({ projects: updatedProjects, enabledProjectCodes: updatedEnabled, defaultProjectId: id, defaultProjectCode: code });
+      renderAll();
+      if (addProjectDrawer) addProjectDrawer.style.display = "none";
+      if (codeEl) codeEl.value = "";
+      if (nameEl) nameEl.value = "";
+      if (idEl) idEl.value = "";
+      setStatus(`Đã thêm [${code}]`);
+    });
+  }
 
   btnStartCrop.addEventListener("click", async () => {
     if (typeof chrome !== "undefined" && chrome.tabs && chrome.tabs.query) {
