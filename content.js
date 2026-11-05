@@ -16,6 +16,9 @@
     send: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,
     close: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
     check: `<svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+    link: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+    copy: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
+    bot: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>`,
   };
 
   let currentConfig = Object.assign({}, window.MVL_DEFAULT_CONFIG || {});
@@ -510,6 +513,7 @@
 
   function openFeedbackPopover(newItem) {
     if (newItem) {
+      if (!newItem.pageUrl) newItem.pageUrl = window.location.href;
       batchItems.push(newItem);
       activeItemIndex = batchItems.length - 1;
     }
@@ -582,6 +586,7 @@
       const enabledProjects = getEnabledProjects();
       const modules = getModulesForProject(selectedProjectId);
       const currentItem = batchItems[activeItemIndex] || batchItems[0];
+      const currentItemUrl = currentItem.pageUrl || pageUrl;
       const fp = currentItem.fingerprint || {};
       const rawComp = fp.reactComponent || "";
       const isMinifiedComp = rawComp && (/^[a-zA-Z0-9_$]{1,2}(\s*<\s*[a-zA-Z0-9_$]{1,2})*$/.test(rawComp) || rawComp.includes(" < "));
@@ -640,9 +645,21 @@
             }
           </div>
           <div class="mvl-fb-head-right">
+            <span class="mvl-fb-slackbot-badge" id="mvl-pop-slackbot-badge" title="AI Slackbot Engine Connected (50,404 RAG chunks · Auto-Enrich)">
+              ${ICONS.bot}
+              <span>AI Slackbot</span>
+            </span>
             <span class="mvl-fb-env-badge ${escapeHtml(selectedEnv)}" id="mvl-pop-env-badge" title="Switch environment">${escapeHtml(selectedEnv)}</span>
             <button type="button" class="mvl-fb-icon-close" id="mvl-pop-close-x" title="Close">${ICONS.close}</button>
           </div>
+        </div>
+
+        <div class="mvl-fb-url-bar" id="mvl-pop-url-bar" title="Current Page URL (Click to copy): ${escapeHtml(currentItemUrl)}">
+          <span class="mvl-fb-url-icon">${ICONS.link}</span>
+          <span class="mvl-fb-url-text" id="mvl-pop-url-text">${escapeHtml(currentItemUrl)}</span>
+          <button type="button" class="mvl-fb-url-copy-btn" id="mvl-pop-copy-url" title="Copy URL" aria-label="Copy page URL">
+            ${ICONS.copy}
+          </button>
         </div>
 
         <div class="mvl-fb-submeta">
@@ -701,9 +718,9 @@
         </div>
 
         <div class="mvl-fb-actions">
-          <span class="mvl-fb-mode-indicator">
+          <span class="mvl-fb-mode-indicator" title="Uses AI Slackbot MCP (50,404 RAG chunks) to auto-detect SRS, Route & Code">
             <span class="mvl-fb-mode-dot ${isQa ? "qa" : "dev"}"></span>
-            <span>${isQa ? `QA · Plane` : "DEV · MCP"}</span>
+            <span>${isQa ? `QA · AI Slackbot → Plane` : "DEV · AI MCP"}</span>
           </span>
           <div class="mvl-fb-btn-group">
             <button type="button" class="mvl-fb-btn-cancel" id="mvl-pop-cancel">Cancel</button>
@@ -767,10 +784,76 @@
             mediaDataUrl: currentItem.mediaDataUrl,
             cropRect: Object.assign({}, currentItem.cropRect),
             fingerprint: Object.assign({}, currentItem.fingerprint),
+            pageUrl: currentItem.pageUrl || window.location.href,
             comment: "",
           });
           activeItemIndex = batchItems.length - 1;
           renderPopoverContent();
+        });
+      }
+
+      const urlBar = activePopover.querySelector("#mvl-pop-url-bar");
+      const urlCopyBtn = activePopover.querySelector("#mvl-pop-copy-url");
+      const urlTextEl = activePopover.querySelector("#mvl-pop-url-text");
+      const copyUrlHandler = async (ev) => {
+        if (ev) ev.stopPropagation();
+        const textToCopy = currentItemUrl || pageUrl || window.location.href;
+        const showSuccess = () => {
+          if (urlCopyBtn) {
+            urlCopyBtn.innerHTML = ICONS.check;
+            urlCopyBtn.classList.add("copied");
+          }
+          if (urlTextEl) {
+            const orig = urlTextEl.textContent;
+            urlTextEl.textContent = "Copied URL!";
+            setTimeout(() => {
+              urlTextEl.textContent = orig;
+            }, 1200);
+          }
+          setTimeout(() => {
+            if (urlCopyBtn) {
+              urlCopyBtn.innerHTML = ICONS.copy;
+              urlCopyBtn.classList.remove("copied");
+            }
+          }, 1500);
+        };
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(textToCopy);
+            showSuccess();
+          } else {
+            fallbackCopyText(textToCopy);
+            showSuccess();
+          }
+        } catch (_) {
+          fallbackCopyText(textToCopy);
+          showSuccess();
+        }
+      };
+
+      function fallbackCopyText(text) {
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand("copy");
+          ta.remove();
+        } catch (_) {}
+      }
+
+      if (urlCopyBtn) {
+        urlCopyBtn.addEventListener("click", copyUrlHandler);
+      }
+      if (urlBar) {
+        urlBar.addEventListener("click", (ev) => {
+          if (!ev.target.closest("#mvl-pop-copy-url")) {
+            copyUrlHandler(ev);
+          }
         });
       }
 
@@ -882,7 +965,7 @@
           : (batchItems[0]?.comment || "").trim();
 
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `<span>Sending...</span>`;
+        submitBtn.innerHTML = `<span>${isQa ? "AI Detecting..." : "Sending..."}</span>`;
 
         const allProjects = getEnabledProjects();
         const projObj = allProjects.find((p) => p.id === selectedProjectId) || allProjects[0];
@@ -903,6 +986,7 @@
           items: batchItems.map((it, idx) => ({
             index: idx + 1,
             comment: (it.comment || "").trim(),
+            pageUrl: it.pageUrl || pageUrl,
             mediaType: it.mediaType,
             mediaDataUrl: it.mediaDataUrl,
             cropRect: it.cropRect,
@@ -951,8 +1035,9 @@
         const totalSent = batchItems.length;
         closePopover(true);
         if (selectedMode === "qa" && result.planeIssue) {
+          const aiDoc = result.aiSlackbot?.route_info?.srs_doc || result.aiSlackbot?.route_info?.screen_name || "SRS & Code";
           showToast(
-            `<div style="font-weight:600;margin-bottom:2px;">Created Plane Issue (${totalSent} item${totalSent > 1 ? "s" : ""}): <a href="${result.planeIssue.url}" target="_blank">${result.planeIssue.identifier}</a></div><div style="font-size:11px;color:#64748b;">${result.planeIssue.moduleName || result.planeIssue.projectCode} · R2 & MCP synced</div>`
+            `<div style="font-weight:600;margin-bottom:2px;">Created Plane Issue (${totalSent} item${totalSent > 1 ? "s" : ""}): <a href="${result.planeIssue.url}" target="_blank">${result.planeIssue.identifier}</a></div><div style="font-size:11px;color:#64748b;">AI Slackbot detected: <code>${escapeHtml(String(aiDoc).slice(0, 42))}</code> · R2 & MCP synced</div>`
           );
         } else {
           showToast(

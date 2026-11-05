@@ -103,6 +103,29 @@ summary:focus-visible,
   background: var(--qa-color);
 }
 
+.slackbot-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  padding: 1.5px 5.5px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  color: #2563eb;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  cursor: default;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.slackbot-badge:hover {
+  background: rgba(37, 99, 235, 0.14);
+  border-color: rgba(37, 99, 235, 0.4);
+}
+
 /* One-Time QA | DEV Switch */
 .role-pill-switch {
   display: inline-flex;
@@ -297,6 +320,22 @@ summary:focus-visible,
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.slackbot-pill {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1.5px 5px;
+  border-radius: 4px;
+  background: rgba(37, 99, 235, 0.10);
+  color: #2563eb;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  white-space: nowrap;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 /* Form Controls */
