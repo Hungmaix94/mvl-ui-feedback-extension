@@ -167,7 +167,15 @@
 
   function updateFloatingPill() {
     if (!floatingPill) return;
-    if (currentConfig.showFloatingButton === false || activePopover) {
+    const isAllowedOnPage =
+      typeof window.isMvlFloatingAllowedOnUrl === "function"
+        ? window.isMvlFloatingAllowedOnUrl(window.location.href, currentConfig)
+        : currentConfig.showFloatingButton !== false;
+    if (
+      currentConfig.showFloatingButton === false ||
+      activePopover ||
+      (!isAllowedOnPage && batchItems.length === 0)
+    ) {
       floatingPill.style.display = "none";
       return;
     }

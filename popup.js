@@ -242,6 +242,42 @@
     }
   }
 
+  function renderWorkingPages() {
+    const listEl = document.getElementById("working-pages-list");
+    const countEl = document.getElementById("working-pages-count");
+    if (!listEl) return;
+    const patterns = Array.isArray(config.floatingAllowedPatterns)
+      ? config.floatingAllowedPatterns
+      : window.MVL_DEFAULT_CONFIG.floatingAllowedPatterns || [];
+    if (countEl) {
+      countEl.textContent = `(${patterns.length})`;
+    }
+    const rawUrl = String(activeTabUrl || "").toLowerCase();
+    listEl.innerHTML = patterns
+      .map((pat, idx) => {
+        const clean = String(pat || "").trim();
+        const isMatched = clean && rawUrl.includes(clean.toLowerCase());
+        return `
+          <span class="domain-chip ${isMatched ? "matched" : ""}" title="${isMatched ? "Matched current tab" : clean}">
+            <span>${escapeHtml(clean)}</span>
+            <button type="button" class="domain-chip-del" data-del-domain="${idx}" title="Remove ${escapeHtml(clean)}">×</button>
+          </span>
+        `;
+      })
+      .join("");
+
+    listEl.querySelectorAll(".domain-chip-del").forEach((btn) => {
+      btn.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        const idx = Number(btn.getAttribute("data-del-domain"));
+        const next = patterns.filter((_, i) => i !== idx);
+        saveConfig({ floatingAllowedPatterns: next });
+        renderWorkingPages();
+        setStatus("Removed working page pattern");
+      });
+    });
+  }
+
   function renderAll() {
     renderModeButtons();
     const detected = window.detectMvlContextFromUrl(activeTabUrl, config);
@@ -251,6 +287,7 @@
 
     renderProjectDropdowns(detected);
     renderProjectChecklist();
+    renderWorkingPages();
     renderAccountAndPat();
   }
 
@@ -329,6 +366,75 @@
       if (nameEl) nameEl.value = "";
       if (idEl) idEl.value = "";
       setStatus(`Đã thêm [${code}]`);
+    });
+  }
+
+  const btnAddDomain = document.getElementById("btn-add-domain");
+  const inputNewDomain = document.getElementById("input-new-domain");
+  const btnAllowCurrentSite = document.getElementById("btn-allow-current-site");
+  const btnResetDomains = document.getElementById("btn-reset-domains");
+
+  function addWorkingDomainPattern(rawPattern) {
+    const clean = String(rawPattern || "")
+      .trim()
+      .replace(/^https?:\/\//i, "")
+      .replace(/\/+$/, "");
+    if (!clean) {
+      setStatus("Nhập domain/URL cần bật", true);
+      return;
+    }
+    const existing = Array.isArray(config.floatingAllowedPatterns)
+      ? config.floatingAllowedPatterns
+      : window.MVL_DEFAULT_CONFIG.floatingAllowedPatterns || [];
+    const updated = Array.from(new Set([clean, ...existing]));
+    saveConfig({ floatingAllowedPatterns: updated });
+    renderWorkingPages();
+    setStatus(`Đã bật Floating cho: ${clean}`);
+  }
+
+  if (btnAddDomain && inputNewDomain) {
+    btnAddDomain.addEventListener("click", () => {
+      addWorkingDomainPattern(inputNewDomain.value);
+      inputNewDomain.value = "";
+    });
+    inputNewDomain.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        addWorkingDomainPattern(inputNewDomain.value);
+        inputNewDomain.value = "";
+      }
+    });
+  }
+
+  if (btnAllowCurrentSite) {
+    btnAllowCurrentSite.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      let hostOrUrl = activeTabUrl || "";
+      try {
+        const u = new URL(activeTabUrl);
+        hostOrUrl = u.host || activeTabUrl;
+      } catch (_) {}
+      addWorkingDomainPattern(hostOrUrl);
+      const exp = document.getElementById("working-pages-expander");
+      if (exp) exp.open = true;
+    });
+  }
+
+  if (btnResetDomains) {
+    btnResetDomains.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const defaults = window.MVL_DEFAULT_CONFIG.floatingAllowedPatterns || [
+        "maivietland.vn",
+        "glinteco.com",
+        "up.railway.app",
+        "localhost",
+        "127.0.0.1",
+      ];
+      saveConfig({ floatingAllowedPatterns: [...defaults] });
+      renderWorkingPages();
+      setStatus("Đã khôi phục danh sách trang mặc định của Team");
     });
   }
 

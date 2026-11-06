@@ -582,6 +582,62 @@ input[type="password"]:focus {
   text-overflow: ellipsis;
 }
 
+.domain-count-badge {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--qa-text);
+  font-weight: 700;
+}
+
+.domain-add-row {
+  margin-top: 6px;
+  display: flex;
+  gap: 4px;
+}
+
+.domain-chip-list {
+  margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 92px;
+  overflow-y: auto;
+}
+
+.domain-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 5.5px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text-main);
+}
+
+.domain-chip.matched {
+  background: var(--qa-bg);
+  border-color: #a7f3d0;
+  color: var(--qa-text);
+  font-weight: 600;
+}
+
+.domain-chip-del {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  padding: 0 1px;
+}
+
+.domain-chip-del:hover {
+  color: #e11d48;
+}
+
 /* Settings Tab */
 .account-card {
   display: flex;

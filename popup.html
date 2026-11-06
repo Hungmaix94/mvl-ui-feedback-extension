@@ -148,6 +148,21 @@
 
         <div id="project-checklist" class="project-chip-grid"></div>
       </details>
+
+      <details class="projects-expander" id="working-pages-expander">
+        <summary class="expander-summary">
+          <span>Working pages <span id="working-pages-count" class="domain-count-badge">(5)</span></span>
+          <div class="card-actions-inline">
+            <button type="button" id="btn-allow-current-site" class="btn-ghost-link" title="Add current tab domain">+ This site</button>
+            <button type="button" id="btn-reset-domains" class="btn-ghost-link" title="Reset to MVL team defaults">Reset</button>
+          </div>
+        </summary>
+        <div class="domain-add-row">
+          <input type="text" id="input-new-domain" placeholder="e.g. staging.myapp.com or localhost:3006" />
+          <button type="button" id="btn-add-domain" class="btn-save-mini">Add</button>
+        </div>
+        <div id="working-pages-list" class="domain-chip-list"></div>
+      </details>
     </section>
 
     <!-- TAB 2: Settings (Multi-Provider: Plane / Linear / Jira / GitHub & MCP) -->

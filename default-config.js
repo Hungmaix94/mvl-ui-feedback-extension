@@ -10,6 +10,14 @@ const MVL_DEFAULT_CONFIG = {
   taskProvider: "plane", // "plane" | "linear" | "jira" | "github"
   captureType: "crop", // "crop" (mặc định chụp ảnh crop) | "video" (quay clip)
   showFloatingButton: true,
+  floatingFilterMode: "whitelist", // "whitelist" (chỉ hiện trên các page làm việc của team) | "all" (mọi trang)
+  floatingAllowedPatterns: [
+    "maivietland.vn",
+    "glinteco.com",
+    "up.railway.app",
+    "localhost",
+    "127.0.0.1",
+  ],
   workerBaseUrl: "https://mvl-ui-feedback-mcp.warhorses94.workers.dev",
   mcpEndpointUrl: "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp",
 
@@ -225,7 +233,24 @@ function detectContextFromUrl(urlStr, config) {
   };
 }
 
+function isFloatingAllowedOnUrl(urlStr, config) {
+  const cfg = config || MVL_DEFAULT_CONFIG;
+  if (cfg.showFloatingButton === false) return false;
+  if (cfg.floatingFilterMode === "all") return true;
+  const raw = String(urlStr || "").toLowerCase();
+  if (!raw) return false;
+  const patterns = Array.isArray(cfg.floatingAllowedPatterns)
+    ? cfg.floatingAllowedPatterns
+    : MVL_DEFAULT_CONFIG.floatingAllowedPatterns || [];
+  if (!patterns.length) return true;
+  return patterns.some((pat) => {
+    const clean = String(pat || "").trim().toLowerCase();
+    return clean && raw.includes(clean);
+  });
+}
+
 if (typeof window !== "undefined") {
   window.MVL_DEFAULT_CONFIG = MVL_DEFAULT_CONFIG;
   window.detectMvlContextFromUrl = detectContextFromUrl;
+  window.isMvlFloatingAllowedOnUrl = isFloatingAllowedOnUrl;
 }
