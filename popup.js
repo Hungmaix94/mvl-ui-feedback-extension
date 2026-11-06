@@ -92,13 +92,19 @@
 
   function renderModeButtons() {
     const isQa = (config.mode || "qa") === "qa";
+    const provLabels = { plane: "Plane", linear: "Linear", jira: "Jira", github: "GitHub" };
+    const pName = provLabels[(config.taskProvider || "plane").toLowerCase()] || "Plane";
     btnModeDev.className = `role-pill ${!isQa ? "active" : ""}`;
     btnModeQa.className = `role-pill ${isQa ? "active" : ""}`;
     btnStartCrop.className = `btn-capture-primary ${isQa ? "qa" : ""}`;
     if (btnStartCropLabel) {
       btnStartCropLabel.textContent = isQa
-        ? "Crop & Create Issue"
+        ? `Crop & Create (${pName})`
         : "Crop & Send to MCP";
+    }
+    const activeProviderPill = document.getElementById("active-provider-pill");
+    if (activeProviderPill) {
+      activeProviderPill.textContent = pName;
     }
   }
 
@@ -174,12 +180,50 @@
   }
 
   function renderAccountAndPat() {
+    const activeProv = (config.taskProvider || "plane").toLowerCase();
+    document.querySelectorAll(".provider-seg-btn").forEach((btn) => {
+      const p = btn.getAttribute("data-provider");
+      btn.classList.toggle("active", p === activeProv);
+    });
+    ["plane", "linear", "jira", "github"].forEach((p) => {
+      const formEl = document.getElementById(`provider-form-${p}`);
+      if (formEl) {
+        formEl.style.display = p === activeProv ? "flex" : "none";
+      }
+    });
+
     inputPlanePat.value = config.planePat || "DEFAULT_CONNECTED_ACCOUNT";
     inputPlaneHost.value = config.planeHostUrl || "https://pm.glinteco.com";
     inputPlaneWorkspace.value = config.planeWorkspaceSlug || "glinteco";
     inputMcpUrl.value =
       config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp";
     chkFloatingPill.checked = config.showFloatingButton !== false;
+
+    const provs = config.providers || window.MVL_DEFAULT_CONFIG.providers || {};
+    const linCfg = provs.linear || {};
+    const jiraCfg = provs.jira || {};
+    const ghCfg = provs.github || {};
+
+    const inLinKey = document.getElementById("input-linear-key");
+    const inLinTeam = document.getElementById("input-linear-team");
+    if (inLinKey) inLinKey.value = linCfg.apiKey || "";
+    if (inLinTeam) inLinTeam.value = linCfg.teamKey || "MVL";
+
+    const inJiraHost = document.getElementById("input-jira-host");
+    const inJiraProj = document.getElementById("input-jira-project");
+    const inJiraEmail = document.getElementById("input-jira-email");
+    const inJiraTok = document.getElementById("input-jira-token");
+    if (inJiraHost) inJiraHost.value = jiraCfg.hostUrl || "https://glinteco.atlassian.net";
+    if (inJiraProj) inJiraProj.value = jiraCfg.projectKey || "MVL";
+    if (inJiraEmail) inJiraEmail.value = jiraCfg.email || "hung.phamduc@glinteco.com";
+    if (inJiraTok) inJiraTok.value = jiraCfg.apiToken || "";
+
+    const inGhRepo = document.getElementById("input-github-repo");
+    const inGhTok = document.getElementById("input-github-token");
+    const inGhLabels = document.getElementById("input-github-labels");
+    if (inGhRepo) inGhRepo.value = ghCfg.repo || "Hungmaix94/mvl-ui-feedback-extension";
+    if (inGhTok) inGhTok.value = ghCfg.token || "";
+    if (inGhLabels) inGhLabels.value = ghCfg.labels || "bug";
 
     const u = config.planeUser || {};
     const fullName = u.first_name || u.display_name || "Pham Hung";
@@ -364,6 +408,70 @@
     }
   });
 
+  // Multi-provider switching (Plane | Linear | Jira | GitHub)
+  document.querySelectorAll(".provider-seg-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const prov = btn.getAttribute("data-provider") || "plane";
+      saveConfig({ taskProvider: prov });
+      renderAll();
+      const labels = { plane: "Plane", linear: "Linear", jira: "Jira", github: "GitHub" };
+      setStatus(`Provider: ${labels[prov] || prov}`);
+    });
+  });
+
+  const activeProviderPill = document.getElementById("active-provider-pill");
+  if (activeProviderPill) {
+    activeProviderPill.addEventListener("click", () => {
+      const settingsTabBtn = document.getElementById("tab-btn-plane");
+      if (settingsTabBtn) settingsTabBtn.click();
+    });
+  }
+
+  const btnSaveLinear = document.getElementById("btn-save-linear");
+  if (btnSaveLinear) {
+    btnSaveLinear.addEventListener("click", () => {
+      const apiKey = (document.getElementById("input-linear-key")?.value || "").trim();
+      const teamKey = (document.getElementById("input-linear-team")?.value || "MVL").trim();
+      const nextProvs = Object.assign({}, config.providers || {}, {
+        linear: { apiKey, teamKey },
+      });
+      saveConfig({ taskProvider: "linear", providers: nextProvs });
+      renderAll();
+      setStatus("Saved Linear config!");
+    });
+  }
+
+  const btnSaveJira = document.getElementById("btn-save-jira");
+  if (btnSaveJira) {
+    btnSaveJira.addEventListener("click", () => {
+      const hostUrl = (document.getElementById("input-jira-host")?.value || "").trim();
+      const projectKey = (document.getElementById("input-jira-project")?.value || "MVL").trim();
+      const email = (document.getElementById("input-jira-email")?.value || "").trim();
+      const apiToken = (document.getElementById("input-jira-token")?.value || "").trim();
+      const nextProvs = Object.assign({}, config.providers || {}, {
+        jira: { hostUrl, projectKey, email, apiToken, issueType: "Bug" },
+      });
+      saveConfig({ taskProvider: "jira", providers: nextProvs });
+      renderAll();
+      setStatus("Saved Jira config!");
+    });
+  }
+
+  const btnSaveGithub = document.getElementById("btn-save-github");
+  if (btnSaveGithub) {
+    btnSaveGithub.addEventListener("click", () => {
+      const repo = (document.getElementById("input-github-repo")?.value || "Hungmaix94/mvl-ui-feedback-extension").trim();
+      const token = (document.getElementById("input-github-token")?.value || "").trim();
+      const labels = (document.getElementById("input-github-labels")?.value || "bug").trim();
+      const nextProvs = Object.assign({}, config.providers || {}, {
+        github: { repo, token, labels },
+      });
+      saveConfig({ taskProvider: "github", providers: nextProvs });
+      renderAll();
+      setStatus("Saved GitHub config!");
+    });
+  }
+
   btnCopyMcp.addEventListener("click", async () => {
     const mcpJson = JSON.stringify(
       {
@@ -440,10 +548,16 @@
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+      document.querySelectorAll(".tab-panel").forEach((p) => {
+        p.classList.remove("active");
+        p.hidden = true;
+      });
       btn.classList.add("active");
       const target = document.getElementById(btn.getAttribute("data-tab"));
-      if (target) target.classList.add("active");
+      if (target) {
+        target.classList.add("active");
+        target.hidden = false;
+      }
       if (btn.getAttribute("data-tab") === "tab-history") {
         loadHistory();
       }

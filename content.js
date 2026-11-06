@@ -631,6 +631,8 @@
         };
 
     const selectedMode = currentConfig.mode || "qa";
+    let selectedProvider = (currentConfig.taskProvider || "plane").toLowerCase();
+    const providerLabels = { plane: "Plane", linear: "Linear", jira: "Jira", github: "GitHub" };
     let selectedEnv = detected.env || "DEV-ONL";
     let selectedProjectId = detected.projectId;
     let selectedModuleId = detected.moduleId;
@@ -759,7 +761,7 @@
 
         <div class="mvl-fb-submeta">
           <div class="mvl-fb-submeta-left">
-            <code class="mvl-fb-meta-selector" title="${escapeHtml(compLabel)}">#${activeItemIndex + 1} ${escapeHtml(compLabel)}</code>
+            <code class="mvl-fb-meta-selector" title="Marker #${activeItemIndex + 1}">Marker #${activeItemIndex + 1}</code>
             <span class="mvl-fb-dim-pill">${currentItem.cropRect.width}×${currentItem.cropRect.height}</span>
           </div>
           <div class="mvl-fb-submeta-actions">
@@ -819,9 +821,9 @@
         </div>
 
         <div class="mvl-fb-actions">
-          <span class="mvl-fb-mode-indicator" title="Auto-detects SRS, Route & Code">
+          <span class="mvl-fb-mode-indicator" id="mvl-pop-provider-switch" style="cursor:${isQa ? "pointer" : "default"};" title="${isQa ? "Click to switch Task Provider (Plane / Linear / Jira / GitHub)" : "DEV Mode"}">
             <span class="mvl-fb-mode-dot ${isQa ? "qa" : "dev"}"></span>
-            <span>${isQa ? `QA → Plane` : "DEV → MCP"}</span>
+            <span>${isQa ? `QA → ${providerLabels[selectedProvider] || "Plane"}` : "DEV → MCP"}</span>
           </span>
           <div class="mvl-fb-btn-group">
             <button type="button" class="mvl-fb-btn-cancel" id="mvl-pop-cancel">Cancel</button>
@@ -1033,6 +1035,17 @@
         });
       }
 
+      const provSwitch = activePopover.querySelector("#mvl-pop-provider-switch");
+      if (provSwitch && isQa) {
+        provSwitch.addEventListener("click", () => {
+          syncCurrentCommentFromDom();
+          const pOrder = ["plane", "linear", "jira", "github"];
+          selectedProvider = pOrder[(pOrder.indexOf(selectedProvider) + 1) % pOrder.length];
+          currentConfig.taskProvider = selectedProvider;
+          renderPopoverContent();
+        });
+      }
+
       activePopover.querySelector("#mvl-pop-cancel").addEventListener("click", () => {
         closePopover(true);
       });
@@ -1095,7 +1108,7 @@
           : (batchItems[0]?.comment || "").trim();
 
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `<span>${isQa ? "AI Detecting..." : "Sending..."}</span>`;
+        submitBtn.innerHTML = `<span>${isQa ? "Creating..." : "Sending..."}</span>`;
 
         const allProjects = getEnabledProjects();
         const projObj = allProjects.find((p) => p.id === selectedProjectId) || allProjects[0];
@@ -1105,6 +1118,8 @@
         const primaryItem = batchItems[0];
         const payload = {
           mode: selectedMode,
+          taskProvider: selectedProvider,
+          providerConfig: currentConfig.providers || {},
           env: selectedEnv,
           pageUrl,
           comment: combinedComment,
@@ -1123,6 +1138,7 @@
             fingerprint: it.fingerprint,
           })),
           planeConfig: {
+            provider: selectedProvider,
             pat: currentConfig.planePat || "DEFAULT_CONNECTED_ACCOUNT",
             hostUrl: currentConfig.planeHostUrl || "https://pm.glinteco.com",
             workspaceSlug: currentConfig.planeWorkspaceSlug || "glinteco",
@@ -1170,8 +1186,9 @@
         });
         closePopover(false);
         if (selectedMode === "qa" && result.planeIssue) {
+          const pLabel = providerLabels[selectedProvider] || "Plane";
           showToast(
-            `<div style="font-weight:600;margin-bottom:2px;">Created Plane Issue (${totalSent} item${totalSent > 1 ? "s" : ""}): <a href="${result.planeIssue.url}" target="_blank">${result.planeIssue.identifier}</a></div><div style="font-size:11px;color:#64748b;">Click any marker (1..${totalSent}) on page to view / edit / delete</div>`
+            `<div style="font-weight:600;margin-bottom:2px;">Created ${pLabel} Issue (${totalSent} item${totalSent > 1 ? "s" : ""}): <a href="${result.planeIssue.url}" target="_blank">${result.planeIssue.identifier}</a></div><div style="font-size:11px;color:#64748b;">Click any marker (1..${totalSent}) on page to view / edit / delete</div>`
           );
         } else {
           showToast(

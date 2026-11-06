@@ -112,6 +112,7 @@
       <div class="url-preview-bar">
         <span id="detected-env-pill" class="env-pill DEV-ONL">DEV</span>
         <span id="detected-url-text" class="detected-url">Detecting URL...</span>
+        <button type="button" id="active-provider-pill" class="provider-mini-pill" title="Active Task Provider (click to configure)">Plane</button>
       </div>
 
       <div class="form-grid-2">
@@ -149,36 +150,106 @@
       </details>
     </section>
 
-    <!-- TAB 2: Settings (Plane & MCP) -->
+    <!-- TAB 2: Settings (Multi-Provider: Plane / Linear / Jira / GitHub & MCP) -->
     <section id="tab-plane" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-plane" hidden>
-      <div class="account-card" id="plane-account-banner">
-        <div class="account-avatar" id="account-avatar-initials">PH</div>
-        <div class="account-meta">
-          <span id="account-name-text" class="account-name">Connected</span>
-          <span id="account-email-text" class="account-email">Default PAT</span>
+      <div class="provider-selector-wrap">
+        <span class="provider-label">Task Provider</span>
+        <div class="provider-seg-bar" role="radiogroup" aria-label="Task Management Provider">
+          <button type="button" class="provider-seg-btn active" data-provider="plane">Plane</button>
+          <button type="button" class="provider-seg-btn" data-provider="linear">Linear</button>
+          <button type="button" class="provider-seg-btn" data-provider="jira">Jira</button>
+          <button type="button" class="provider-seg-btn" data-provider="github">GitHub</button>
         </div>
-        <span class="verified-tag">Active</span>
       </div>
 
-      <div class="field-group">
-        <label for="input-plane-pat">Plane PAT</label>
-        <input type="password" id="input-plane-pat" placeholder="plane_api_..." autocomplete="off" />
-      </div>
+      <!-- Provider 1: Plane -->
+      <div id="provider-form-plane" class="provider-form">
+        <div class="account-card" id="plane-account-banner">
+          <div class="account-avatar" id="account-avatar-initials">PH</div>
+          <div class="account-meta">
+            <span id="account-name-text" class="account-name">Connected</span>
+            <span id="account-email-text" class="account-email">Default PAT</span>
+          </div>
+          <span class="verified-tag">Active</span>
+        </div>
 
-      <div class="form-grid-2">
         <div class="field-group">
-          <label for="input-plane-host">Host</label>
-          <input type="text" id="input-plane-host" value="https://pm.glinteco.com" />
+          <label for="input-plane-pat">Plane PAT</label>
+          <input type="password" id="input-plane-pat" placeholder="plane_api_..." autocomplete="off" />
         </div>
-        <div class="field-group">
-          <label for="input-plane-workspace">Workspace</label>
-          <input type="text" id="input-plane-workspace" value="glinteco" />
+
+        <div class="form-grid-2">
+          <div class="field-group">
+            <label for="input-plane-host">Host</label>
+            <input type="text" id="input-plane-host" value="https://pm.glinteco.com" />
+          </div>
+          <div class="field-group">
+            <label for="input-plane-workspace">Workspace</label>
+            <input type="text" id="input-plane-workspace" value="glinteco" />
+          </div>
         </div>
+
+        <button type="button" id="btn-sync-plane" class="btn-sync-action">
+          <span id="btn-sync-plane-label">Sync Plane</span>
+        </button>
       </div>
 
-      <button type="button" id="btn-sync-plane" class="btn-sync-action">
-        <span id="btn-sync-plane-label">Sync Plane</span>
-      </button>
+      <!-- Provider 2: Linear -->
+      <div id="provider-form-linear" class="provider-form" style="display: none;">
+        <div class="field-group">
+          <label for="input-linear-key">Linear API Key</label>
+          <input type="password" id="input-linear-key" placeholder="lin_api_..." autocomplete="off" />
+        </div>
+        <div class="field-group">
+          <label for="input-linear-team">Team Key / ID</label>
+          <input type="text" id="input-linear-team" placeholder="MVL or ENG" />
+        </div>
+        <button type="button" id="btn-save-linear" class="btn-sync-action">Save Linear Config</button>
+      </div>
+
+      <!-- Provider 3: Jira -->
+      <div id="provider-form-jira" class="provider-form" style="display: none;">
+        <div class="form-grid-2">
+          <div class="field-group">
+            <label for="input-jira-host">Jira Host URL</label>
+            <input type="text" id="input-jira-host" placeholder="https://company.atlassian.net" />
+          </div>
+          <div class="field-group">
+            <label for="input-jira-project">Project Key</label>
+            <input type="text" id="input-jira-project" placeholder="MVL" />
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="field-group">
+            <label for="input-jira-email">Email</label>
+            <input type="text" id="input-jira-email" placeholder="you@company.com" />
+          </div>
+          <div class="field-group">
+            <label for="input-jira-token">API Token</label>
+            <input type="password" id="input-jira-token" placeholder="ATATT3x..." autocomplete="off" />
+          </div>
+        </div>
+        <button type="button" id="btn-save-jira" class="btn-sync-action">Save Jira Config</button>
+      </div>
+
+      <!-- Provider 4: GitHub Issues -->
+      <div id="provider-form-github" class="provider-form" style="display: none;">
+        <div class="field-group">
+          <label for="input-github-repo">Repository (owner/repo)</label>
+          <input type="text" id="input-github-repo" placeholder="Hungmaix94/mvl-ui-feedback-extension" />
+        </div>
+        <div class="form-grid-2">
+          <div class="field-group">
+            <label for="input-github-token">GitHub PAT</label>
+            <input type="password" id="input-github-token" placeholder="ghp_..." autocomplete="off" />
+          </div>
+          <div class="field-group">
+            <label for="input-github-labels">Labels</label>
+            <input type="text" id="input-github-labels" placeholder="bug,ui" />
+          </div>
+        </div>
+        <button type="button" id="btn-save-github" class="btn-sync-action">Save GitHub Config</button>
+      </div>
 
       <div class="mcp-inline-row">
         <input

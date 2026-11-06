@@ -6,11 +6,32 @@
  */
 
 const MVL_DEFAULT_CONFIG = {
-  mode: "qa", // "dev" (bắn vào MCP) | "qa" (tạo task Plane + lưu MCP)
+  mode: "qa", // "dev" (bắn vào MCP) | "qa" (tạo task lên Provider + lưu MCP)
+  taskProvider: "plane", // "plane" | "linear" | "jira" | "github"
   captureType: "crop", // "crop" (mặc định chụp ảnh crop) | "video" (quay clip)
   showFloatingButton: true,
   workerBaseUrl: "https://mvl-ui-feedback-mcp.warhorses94.workers.dev",
   mcpEndpointUrl: "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp",
+
+  // Cấu hình đa Provider quản lý Task (Linear, Jira, GitHub Issues)
+  providers: {
+    linear: {
+      apiKey: "",
+      teamKey: "MVL",
+    },
+    jira: {
+      hostUrl: "https://glinteco.atlassian.net",
+      email: "hung.phamduc@glinteco.com",
+      apiToken: "",
+      projectKey: "MVL",
+      issueType: "Bug",
+    },
+    github: {
+      token: "",
+      repo: "Hungmaix94/mvl-ui-feedback-extension",
+      labels: "bug",
+    },
+  },
 
   // Mặc định lấy PAT của account Plane đã gắn trước đó trên Worker (Pham Hung - hung.phamduc@glinteco.com)
   planeHostUrl: "https://pm.glinteco.com",
