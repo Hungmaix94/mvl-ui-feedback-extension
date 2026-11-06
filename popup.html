@@ -189,8 +189,8 @@
         </div>
 
         <div class="field-group">
-          <label for="input-plane-pat">Plane PAT</label>
-          <input type="password" id="input-plane-pat" placeholder="plane_api_..." autocomplete="off" />
+          <label for="input-plane-pat">Plane PAT (Team Default — Editable)</label>
+          <input type="text" id="input-plane-pat" value="plane_api_dfeaa88d10704e32a1d15e45d0006318" placeholder="plane_api_..." autocomplete="off" spellcheck="false" />
         </div>
 
         <div class="form-grid-2">
@@ -276,6 +276,17 @@
         />
         <button type="button" id="btn-copy-mcp" class="btn-ghost-link">Copy MCP</button>
       </div>
+
+      <details class="working-pages-details" id="mcp-agent-guide-expander">
+        <summary class="working-pages-summary">
+          <span>📖 User Guide: Connect AI Agents (MCP)</span>
+          <a href="https://mvl-ui-feedback-mcp.warhorses94.workers.dev/landing#mcp-guide" target="_blank" class="btn-ghost-link" style="text-decoration:none;">Full Guide ↗</a>
+        </summary>
+        <div class="domain-chip-list" style="margin-top:6px;">
+          <button type="button" id="btn-copy-mcp-antigravity" class="btn-ghost-link" style="border:1px solid #cbd5e1; padding:3px 7px; border-radius:5px;">📋 Copy Antigravity / Cursor JSON</button>
+          <button type="button" id="btn-copy-mcp-claude" class="btn-ghost-link" style="border:1px solid #cbd5e1; padding:3px 7px; border-radius:5px;">📋 Copy Claude CLI</button>
+        </div>
+      </details>
     </section>
 
     <!-- TAB 3: History -->

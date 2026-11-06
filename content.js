@@ -23,6 +23,7 @@
 
   let currentConfig = Object.assign({}, window.MVL_DEFAULT_CONFIG || {});
   let floatingPill = null;
+  let sessionForceShowFloating = false;
   let activeOverlay = null;
   let activeTopBar = null;
   let selectionBox = null;
@@ -130,6 +131,9 @@
       const stored = await chrome.storage.local.get(["mvlConfig"]);
       if (stored && stored.mvlConfig) {
         currentConfig = Object.assign({}, window.MVL_DEFAULT_CONFIG, stored.mvlConfig);
+        if (!currentConfig.planePat || currentConfig.planePat === "DEFAULT_CONNECTED_ACCOUNT") {
+          currentConfig.planePat = "plane_api_dfeaa88d10704e32a1d15e45d0006318";
+        }
       }
     }
     updateFloatingPill();
@@ -168,9 +172,10 @@
   function updateFloatingPill() {
     if (!floatingPill) return;
     const isAllowedOnPage =
-      typeof window.isMvlFloatingAllowedOnUrl === "function"
+      sessionForceShowFloating ||
+      (typeof window.isMvlFloatingAllowedOnUrl === "function"
         ? window.isMvlFloatingAllowedOnUrl(window.location.href, currentConfig)
-        : currentConfig.showFloatingButton !== false;
+        : currentConfig.showFloatingButton !== false);
     if (
       currentConfig.showFloatingButton === false ||
       activePopover ||
@@ -1242,7 +1247,19 @@
         return true;
       }
       if (msg?.type === "MVL_CONFIG_UPDATED") {
+        if (typeof msg.forceShowOnTab === "boolean") {
+          sessionForceShowFloating = msg.forceShowOnTab;
+        }
         loadConfig().then(() => sendResponse({ ok: true }));
+        return true;
+      }
+      if (msg?.type === "MVL_POPUP_OPENED") {
+        sessionForceShowFloating = true;
+        loadConfig().then(() => {
+          createFloatingPill();
+          updateFloatingPill();
+          sendResponse({ ok: true, shownOnCurrentPage: true });
+        });
         return true;
       }
       return false;

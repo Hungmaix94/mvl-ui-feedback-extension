@@ -41,15 +41,15 @@ const MVL_DEFAULT_CONFIG = {
     },
   },
 
-  // Mặc định lấy PAT của account Plane đã gắn trước đó trên Worker (Pham Hung - hung.phamduc@glinteco.com)
+  // Mặc định điền sẵn PAT Plane dùng chung cho toàn Team (có thể chỉnh sửa bất kỳ lúc nào trong Popup Settings)
   planeHostUrl: "https://pm.glinteco.com",
   planeWorkspaceSlug: "glinteco",
-  planePat: "DEFAULT_CONNECTED_ACCOUNT",
+  planePat: "plane_api_dfeaa88d10704e32a1d15e45d0006318",
   planeUser: {
-    id: "8ad0e2eb-5ce1-40ee-aa03-a14c872922c0",
-    display_name: "hung.phamduc",
-    first_name: "Pham Hung",
-    email: "hung.phamduc@glinteco.com",
+    id: "84f4b285-6aec-436c-a32d-022b3ef0c216",
+    display_name: "developers",
+    first_name: "Glinteco Developer",
+    email: "developers@glinteco.com",
   },
 
   defaultProjectId: "e92f7ba8-0db9-487f-a21c-13712d226eb8",

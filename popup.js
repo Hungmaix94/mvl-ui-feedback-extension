@@ -64,11 +64,21 @@
       const stored = await chrome.storage.local.get(["mvlConfig"]);
       if (stored && stored.mvlConfig) {
         config = Object.assign({}, window.MVL_DEFAULT_CONFIG, stored.mvlConfig);
+        if (!config.planePat || config.planePat === "DEFAULT_CONNECTED_ACCOUNT") {
+          config.planePat = "plane_api_dfeaa88d10704e32a1d15e45d0006318";
+          config.planeUser = window.MVL_DEFAULT_CONFIG.planeUser;
+          await chrome.storage.local.set({ mvlConfig: config });
+        }
       }
     }
     if (typeof chrome !== "undefined" && chrome.tabs && chrome.tabs.query) {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       activeTabUrl = tab?.url || "https://host-app-production.up.railway.app/appsale";
+      if (tab?.id && config.showFloatingButton !== false) {
+        chrome.tabs.sendMessage(tab.id, { type: "MVL_POPUP_OPENED" }, () => {
+          void chrome.runtime.lastError;
+        });
+      }
     } else {
       activeTabUrl = window.location.href;
     }
@@ -192,7 +202,10 @@
       }
     });
 
-    inputPlanePat.value = config.planePat || "DEFAULT_CONNECTED_ACCOUNT";
+    inputPlanePat.value =
+      !config.planePat || config.planePat === "DEFAULT_CONNECTED_ACCOUNT"
+        ? "plane_api_dfeaa88d10704e32a1d15e45d0006318"
+        : config.planePat;
     inputPlaneHost.value = config.planeHostUrl || "https://pm.glinteco.com";
     inputPlaneWorkspace.value = config.planeWorkspaceSlug || "glinteco";
     inputMcpUrl.value =
@@ -226,11 +239,11 @@
     if (inGhLabels) inGhLabels.value = ghCfg.labels || "bug";
 
     const u = config.planeUser || {};
-    const fullName = u.first_name || u.display_name || "Pham Hung";
-    accountNameText.textContent = `${fullName} (${u.display_name || "hung.phamduc"})`;
+    const fullName = u.first_name || u.display_name || "Glinteco Developer";
+    accountNameText.textContent = `${fullName} (${u.display_name || "developers"})`;
     accountEmailText.textContent = `${
-      u.email || "hung.phamduc@glinteco.com"
-    } • PAT đã gắn sẵn`;
+      u.email || "developers@glinteco.com"
+    } • Team PAT (Editable)`;
     if (accountAvatarInitials) {
       const initials = fullName
         .split(/\s+/)
@@ -468,6 +481,12 @@
     }
   });
 
+  inputPlanePat.addEventListener("change", () => {
+    const val = inputPlanePat.value.trim() || "plane_api_dfeaa88d10704e32a1d15e45d0006318";
+    saveConfig({ planePat: val });
+    setStatus("Đã lưu Plane PAT!");
+  });
+
   btnSyncPlane.addEventListener("click", async () => {
     const pat = inputPlanePat.value.trim();
     const hostUrl = inputPlaneHost.value.trim() || "https://pm.glinteco.com";
@@ -581,9 +600,11 @@
   btnCopyMcp.addEventListener("click", async () => {
     const mcpJson = JSON.stringify(
       {
-        "mvl-ui-feedback-mcp": {
-          serverUrl:
-            config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp",
+        mcpServers: {
+          "mvl-ui-feedback": {
+            serverUrl:
+              config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp",
+          },
         },
       },
       null,
@@ -593,8 +614,53 @@
     setStatus("Đã copy cấu hình MCP!");
   });
 
-  chkFloatingPill.addEventListener("change", (e) => {
-    saveConfig({ showFloatingButton: e.target.checked });
+  const btnCopyMcpAntigravity = document.getElementById("btn-copy-mcp-antigravity");
+  if (btnCopyMcpAntigravity) {
+    btnCopyMcpAntigravity.addEventListener("click", async () => {
+      const mcpJson = JSON.stringify(
+        {
+          mcpServers: {
+            "mvl-ui-feedback": {
+              serverUrl:
+                config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp",
+              url:
+                config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp",
+            },
+          },
+        },
+        null,
+        2
+      );
+      await navigator.clipboard.writeText(mcpJson);
+      setStatus("Copied Antigravity/Cursor MCP JSON!");
+    });
+  }
+
+  const btnCopyMcpClaude = document.getElementById("btn-copy-mcp-claude");
+  if (btnCopyMcpClaude) {
+    btnCopyMcpClaude.addEventListener("click", async () => {
+      const url = config.mcpEndpointUrl || "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp";
+      const cliCmd = `claude mcp add --transport http mvl-ui-feedback ${url}`;
+      await navigator.clipboard.writeText(cliCmd);
+      setStatus("Copied Claude Code CLI command!");
+    });
+  }
+
+  chkFloatingPill.addEventListener("change", async (e) => {
+    const enabled = e.target.checked;
+    await saveConfig({ showFloatingButton: enabled });
+    if (typeof chrome !== "undefined" && chrome.tabs && chrome.tabs.query) {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) {
+        chrome.tabs.sendMessage(
+          tab.id,
+          { type: "MVL_CONFIG_UPDATED", forceShowOnTab: enabled },
+          () => {
+            void chrome.runtime.lastError;
+          }
+        );
+      }
+    }
   });
 
   async function loadHistory() {

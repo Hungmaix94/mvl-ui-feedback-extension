@@ -1,53 +1,112 @@
-# ✂️ MVL UI Feedback Chrome Extension — Crop to Plane & Cloudflare Remote MCP
+# ✂️ SnapUI v2.6.0 — Visual Feedback, Multi-Provider Issue Engine & Remote MCP
 
-Tiện ích Chrome (Manifest V3) giúp **Team QA** và **Team FE** phản hồi trực tiếp trên giao diện Web (kiểu **Antigravity Artifact Inline Commenting**), hoạt động xuyên suốt trên cả **Production**, **Dev Online (`*.up.railway.app`)** và **Localhost (`localhost:3006`)**.
+Giải pháp khoanh vùng giao diện, ghim Marker đánh số tối giản (`1`, `2`, `3`), tự động đính kèm file ảnh vào **Plane, Linear, Jira, GitHub Issues** hoặc đẩy thẳng vào **Cloudflare Remote MCP (`/mcp`)** cho các AI Coding Agents (**Antigravity, Claude Code, Cursor, Windsurf**).
 
----
-
-## 🌟 Tính năng Chính
-
-1. **Mặc định Kéo chuột Chụp ảnh Crop + Lấy Link hiện tại + Comment:**
-   - Kéo chuột khoanh vùng lỗi trên màn hình (chụp nét 100% qua `chrome.tabs.captureVisibleTab`) hoặc chuyển sang quay **Video ngắn**.
-   - Tự động đính kèm **Link URL hiện tại** (`window.location.href`) và **Multi-Anchor Fingerprint** (`React Component`, `File:Line`, `React Fiber Props`, `DOM Selector`, `Computed CSS`, `Visible Text Anchors`, `Recent API Calls`) để AI Agent tìm ra chính xác file code ngay cả trên bản build Production đã minify.
-2. **Chuyển đổi 2 Chế độ (`👨‍💻 DEV Mode` vs `🕵️‍♀️ QA Mode`) ngay trên Popup & Inline Card:**
-   - **`👨‍💻 DEV Mode (Bắn vào MCP)`:** Đẩy ảnh Crop lên Cloudflare R2 và lưu tọa độ kỹ thuật vào **Cloudflare Remote MCP Server** (`https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp`) — không tạo task làm rác Plane.
-   - **`🕵️‍♀️ QA Mode (Tạo Task Plane)`:** Tự động tạo Task lên **Plane (`https://pm.glinteco.com`)** bằng PAT của tài khoản đang gắn (mặc định kết nối sẵn tài khoản đã gắn trước đó, hoặc cho phép từng QA nhập PAT riêng), gắn đúng **Project + Module**, ảnh Crop R2 và lưu ngữ cảnh vào MCP theo mã Task vừa tạo.
-3. **Auto-detect Môi trường (`[PROD]` / `[DEV-ONL]` / `[LOCAL]`) + Project / Module & Cho phép chọn lại:**
-   - Tự động nhận diện Môi trường, Project và Module dựa trên URL hiện tại.
-   - Cho phép bấm dropdown **chọn lại Project hoặc Module** ngay trên khung Comment trước khi ấn Gửi.
-   - Hỗ trợ đồng bộ danh sách Project/Module từ Plane và cấu hình ẩn/hiện List Project trong Popup.
+- 🌐 **Product Landing Page & Interactive MCP Guide:** [https://mvl-ui-feedback-mcp.warhorses94.workers.dev/landing](https://mvl-ui-feedback-mcp.warhorses94.workers.dev/landing)
+- 🔌 **Remote MCP Endpoint (Streamable HTTP / JSON-RPC):** `https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp`
+- 📦 **GitHub Release (`v2.6.0`):** [https://github.com/Hungmaix94/mvl-ui-feedback-extension/releases/tag/v2.6.0](https://github.com/Hungmaix94/mvl-ui-feedback-extension/releases/tag/v2.6.0)
+- 🎬 **Video Giới Thiệu Sản Phẩm (Recordly 7 Use Cases — Giọng Thuyết Minh Adam Bựa EN/VI):** [https://pub-dd118e9f58254711a5ec2f75e6bf0530.r2.dev/test-videos/snapui_recordly_voiceover_vi.mp4](https://pub-dd118e9f58254711a5ec2f75e6bf0530.r2.dev/test-videos/snapui_recordly_voiceover_vi.mp4)
 
 ---
 
-## 🚀 Hướng dẫn Cài đặt (Load Unpacked — 20 giây)
+## 📖 User Guide: Kết Nối Remote MCP Cho Các AI Coding Agents
 
-```bash
-git clone https://github.com/Hungmaix94/mvl-ui-feedback-extension.git
-```
+Sau khi bật **DEV Mode** trên Extension SnapUI và bấm **Create** để bắn ảnh chụp vùng lỗi + tọa độ Marker lên Cloudflare Worker, bạn chỉ cần kết nối AI Agent của mình vào địa chỉ Remote MCP dưới đây để AI tự động đọc ảnh R2 và sửa code.
 
-1. Mở trình duyệt Chrome / Edge / Brave, truy cập: `chrome://extensions/`
-2. Bật công tắc **Developer mode (Chế độ dành cho nhà phát triển)** ở góc trên bên phải.
-3. Bấm **Load unpacked (Tải tiện ích đã giải nén)** và chọn thư mục vừa clone (`mvl-ui-feedback-extension` hoặc `chrome-extension`).
-4. Mở trang web cần test/review, bấm nút **`✂️ UI Feedback`** ở góc dưới bên phải (hoặc tổ hợp phím `Alt + Shift + C`).
-
----
-
-## 🔌 Kết nối Cloudflare Remote MCP Server vào Antigravity / Claude Code / Cursor
-
-Thêm đoạn cấu hình sau vào `mcp.json`:
+### 1. Kết nối trong Google Antigravity
+Mở file cấu hình `~/.gemini/antigravity/mcp_config.json` (hoặc vào mục **MCP Servers → Edit Config**) và thêm server `mvl-ui-feedback`:
 
 ```json
 {
   "mcpServers": {
-    "mvl-ui-feedback-mcp": {
+    "mvl-ui-feedback": {
       "serverUrl": "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp"
     }
   }
 }
 ```
 
-### Các MCP Tools cung cấp sẵn:
-- `get_latest_dev_feedbacks`: Lấy danh sách các điểm UI mà Dev vừa khoanh vùng Crop & Comment.
-- `get_feedback_by_plane_task`: Lấy ảnh Crop R2 + tọa độ DOM/React Fiber theo mã Task Plane (VD: `MVLCTV-1089`).
-- `list_page_feedbacks`: Lấy toàn bộ các điểm feedback đang pending trên cùng một màn hình để AI sửa gộp 1 lần.
-- `resolve_ui_feedback`: Đánh dấu đã sửa xong trên Cloudflare D1.
+### 2. Kết nối trong Claude Code (CLI / IDE)
+**Cách 1 — Chạy lệnh CLI 1 chạm trên Terminal:**
+```bash
+claude mcp add --transport http mvl-ui-feedback https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp
+```
+
+**Cách 2 — Thêm vào file `.mcp.json` tại thư mục gốc của repo:**
+```json
+{
+  "mcpServers": {
+    "mvl-ui-feedback": {
+      "type": "http",
+      "url": "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp"
+    }
+  }
+}
+```
+
+### 3. Kết nối trong Cursor IDE
+Mở `~/.cursor/mcp.json` (hoặc `.cursor/mcp.json` trong thư mục dự án, hoặc vào **Cursor Settings → MCP → Add new global MCP server**):
+
+```json
+{
+  "mcpServers": {
+    "mvl-ui-feedback": {
+      "url": "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp"
+    }
+  }
+}
+```
+
+### 4. Kết nối trong Windsurf / Cline / Các Agent dùng `stdio`
+Nếu Agent chỉ hỗ trợ `stdio`, dùng gói cầu nối `mcp-remote` qua `npx`:
+
+```json
+{
+  "mcpServers": {
+    "mvl-ui-feedback": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mvl-ui-feedback-mcp.warhorses94.workers.dev/mcp"
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 🛠️ Danh Sách 4 MCP Tools Cung Cấp Cho AI Agent
+
+Khi kết nối thành công, AI Agent sẽ tự động nhìn thấy và gọi được 4 công cụ sau:
+
+| Tên MCP Tool | Tham số chính | Chức năng |
+| :--- | :--- | :--- |
+| **`get_latest_dev_feedbacks`** | `limit` (mặc định `5`), `mode` (`dev`/`qa`/`all`), `status` (`pending`/`resolved`/`all`), `page_url_contains` | Lấy danh sách các điểm ghim UI, ảnh chụp vùng chọn R2 (`screenshotUrl`, `annotations`) và ngữ cảnh SRS mới nhất vừa gửi từ Extension. |
+| **`get_feedback_by_plane_task`** | `task_identifier` (VD: `"MVLCTV-1075"` hoặc UUID) | Tra cứu toàn bộ ảnh chụp R2, danh sách các Marker (`#1`, `#2`, `#3`) và tài liệu SRS của một mã Task cụ thể. |
+| **`list_page_feedbacks`** | `pathname_or_url` (VD: `"/appsale"`), `status` | Liệt kê tất cả các điểm ghim lỗi UI đang mở trên một đường dẫn trang cụ thể. |
+| **`resolve_ui_feedback`** | `id_or_task`, `resolution_note` | Đánh dấu feedback hoặc mã Task đã được AI sửa xong (`status = 'resolved'`) kèm ghi chú commit/PR. |
+
+---
+
+## 💬 Câu Lệnh Prompt Mẫu Khi Chat Với AI Agent
+
+Bạn chỉ cần gõ một trong các câu lệnh ngắn gọn sau vào khung chat của **Antigravity / Claude Code / Cursor**:
+
+- **Khi đang code ở chế độ `DEV Mode`:**
+  > *"Lấy feedback UI mới nhất từ MCP `mvl-ui-feedback`, xem ảnh chụp các Marker và sửa code giao diện giúp tôi, xong gọi `resolve_ui_feedback`."*
+- **Khi muốn sửa một Task do QA vừa tạo trên Plane:**
+  > *"Dùng MCP `mvl-ui-feedback` đọc ảnh chụp và các Marker của task `MVLCTV-1075` rồi sửa lỗi giao diện tương ứng."*
+- **Khi muốn rà soát toàn bộ lỗi UI trên một trang:**
+  > *"Liệt kê tất cả các điểm ghim UI đang pending trên trang `/appsale` qua MCP `mvl-ui-feedback` và xử lý lần lượt."*
+
+---
+
+## 🚀 Hướng dẫn Cài đặt Chrome Extension (30 giây)
+
+1. Mở trình duyệt Chrome / Edge / Brave, truy cập: `chrome://extensions/`
+2. Bật công tắc **Developer mode (Chế độ dành cho nhà phát triển)** ở góc trên bên phải.
+3. Bấm nút **Load unpacked (Tải tiện ích đã giải nén)** và chọn thư mục:
+   `/Users/phamhung/D/Work/MVL/slackbot/ui-feedback-workflow/chrome-extension` (hoặc `/Applications/SnapUI-Extension`).
+4. Danh sách **Working Pages** đã được cấu hình sẵn cho Team: `maivietland.vn`, `glinteco.com`, `up.railway.app`, `localhost`, `127.0.0.1`.
